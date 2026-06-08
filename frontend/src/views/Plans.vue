@@ -1,83 +1,107 @@
 <template>
   <AppLayout>
-    <div class="toolbar">
-      <h1 class="page-title" style="margin: 0">学习计划</h1>
-      <el-space>
+    <div class="page-heading">
+      <div>
+        <p class="page-kicker">Study Plan</p>
+        <h1 class="page-title">学习计划</h1>
+        <p class="page-subtitle">把大目标拆成每天能完成的小任务，让学习进度更清楚。</p>
+      </div>
+      <div class="toolbar-actions">
         <el-button :icon="Plus" @click="openPlanDialog">新建计划</el-button>
         <el-button type="primary" :icon="CirclePlus" @click="openTaskDialog()">添加任务</el-button>
-      </el-space>
+      </div>
     </div>
 
     <div class="grid two-col">
       <div class="panel">
-        <h3 style="margin-top: 0">计划列表</h3>
-        <el-table :data="plans" v-loading="loading">
-          <el-table-column prop="title" label="计划" min-width="160" />
-          <el-table-column label="周期" min-width="180">
-            <template #default="{ row }">
-              {{ row.start_date || '未设' }} - {{ row.end_date || '未设' }}
-            </template>
-          </el-table-column>
-          <el-table-column label="任务" width="90">
-            <template #default="{ row }">{{ row.tasks?.length || 0 }}</template>
-          </el-table-column>
-          <el-table-column label="操作" width="180">
-            <template #default="{ row }">
-              <el-button :icon="CirclePlus" @click="openTaskDialog(row.id)">任务</el-button>
-              <el-button :icon="Delete" type="danger" @click="removePlan(row.id)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+        <div class="toolbar">
+          <div>
+            <h3 class="panel-title">计划列表</h3>
+            <p class="panel-subtitle">按阶段组织任务，适合课程复习、实验报告和项目推进。</p>
+          </div>
+        </div>
+        <el-empty v-if="!loading && !plans.length" description="还没有学习计划，先创建一个本周目标吧" />
+        <div v-else class="table-wrap">
+          <el-table :data="plans" v-loading="loading">
+            <el-table-column prop="title" label="计划" min-width="160" />
+            <el-table-column label="周期" min-width="180">
+              <template #default="{ row }">
+                {{ row.start_date || '未设' }} - {{ row.end_date || '未设' }}
+              </template>
+            </el-table-column>
+            <el-table-column label="任务" width="90">
+              <template #default="{ row }">{{ row.tasks?.length || 0 }}</template>
+            </el-table-column>
+            <el-table-column label="操作" width="190">
+              <template #default="{ row }">
+                <el-button :icon="CirclePlus" @click="openTaskDialog(row.id)">任务</el-button>
+                <el-button :icon="Delete" type="danger" @click="removePlan(row.id)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
       </div>
 
       <div class="panel">
-        <h3 style="margin-top: 0">今日任务</h3>
-        <el-empty v-if="!today.length" description="今天还没有任务" />
+        <h3 class="panel-title">今日任务</h3>
+        <p class="panel-subtitle">今天先完成这些小步骤。勾选后会同步更新任务状态。</p>
+        <el-empty v-if="!today.length" description="今天还没有任务，可以添加一个轻量目标" />
         <div v-else>
-          <div v-for="task in today" :key="task.id" class="reference">
+          <div v-for="task in today" :key="task.id" class="task-card">
             <el-checkbox :model-value="task.status === 'done'" @change="toggleTask(task)">
               <strong>{{ task.title }}</strong>
             </el-checkbox>
-            <p class="muted">{{ task.description }}</p>
+            <p class="muted">{{ task.description || '暂无说明' }}</p>
+            <el-tag :type="task.status === 'done' ? 'success' : 'warning'" size="small">
+              {{ task.status === 'done' ? '已完成' : '待完成' }}
+            </el-tag>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="panel" style="margin-top: 16px">
-      <h3 style="margin-top: 0">全部任务</h3>
-      <el-table :data="allTasks">
-        <el-table-column prop="title" label="任务" min-width="180" />
-        <el-table-column prop="due_date" label="截止日期" width="140" />
-        <el-table-column label="状态" width="120">
-          <template #default="{ row }">
-            <el-tag :type="row.status === 'done' ? 'success' : 'info'">
-              {{ row.status === 'done' ? '已完成' : '待完成' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="220">
-          <template #default="{ row }">
-            <el-button
-              :icon="Check"
-              :type="row.status === 'done' ? 'info' : 'success'"
-              @click="toggleTask(row)"
-            >
-              {{ row.status === 'done' ? '撤销' : '完成' }}
-            </el-button>
-            <el-button :icon="Delete" type="danger" @click="removeTask(row.id)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+    <div class="panel section-gap">
+      <div class="toolbar">
+        <div>
+          <h3 class="panel-title">计划内任务</h3>
+          <p class="panel-subtitle">这里展示已归属到学习计划的任务；未选择计划的任务仍会在“今日任务”中按日期出现。</p>
+        </div>
+      </div>
+      <el-empty v-if="!allTasks.length" description="暂无计划内任务" />
+      <div v-else class="table-wrap">
+        <el-table :data="allTasks">
+          <el-table-column prop="title" label="任务" min-width="180" />
+          <el-table-column prop="due_date" label="截止日期" width="140" />
+          <el-table-column label="状态" width="120">
+            <template #default="{ row }">
+              <el-tag :type="row.status === 'done' ? 'success' : 'info'">
+                {{ row.status === 'done' ? '已完成' : '待完成' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="220">
+            <template #default="{ row }">
+              <el-button
+                :icon="Check"
+                :type="row.status === 'done' ? 'info' : 'success'"
+                @click="toggleTask(row)"
+              >
+                {{ row.status === 'done' ? '撤销' : '完成' }}
+              </el-button>
+              <el-button :icon="Delete" type="danger" @click="removeTask(row.id)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
     </div>
 
     <el-dialog v-model="planDialog" title="新建计划" width="460px">
       <el-form :model="planForm" label-position="top">
-        <el-form-item label="标题">
-          <el-input v-model="planForm.title" />
+        <el-form-item label="标题" required>
+          <el-input v-model="planForm.title" placeholder="例如：两周完成数据库复习" />
         </el-form-item>
         <el-form-item label="说明">
-          <el-input v-model="planForm.description" type="textarea" />
+          <el-input v-model="planForm.description" type="textarea" placeholder="写下计划目标和学习范围" />
         </el-form-item>
         <el-form-item label="周期">
           <el-date-picker
@@ -86,7 +110,7 @@
             value-format="YYYY-MM-DD"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
-            style="width: 100%"
+            class="full-width"
           />
         </el-form-item>
       </el-form>
@@ -99,18 +123,19 @@
     <el-dialog v-model="taskDialog" title="添加任务" width="460px">
       <el-form :model="taskForm" label-position="top">
         <el-form-item label="所属计划">
-          <el-select v-model="taskForm.plan_id" clearable placeholder="不选择计划" style="width: 100%">
+          <el-select v-model="taskForm.plan_id" clearable placeholder="不选择计划" class="full-width">
             <el-option v-for="plan in plans" :key="plan.id" :label="plan.title" :value="plan.id" />
           </el-select>
+          <p class="panel-subtitle">不选择计划时，该任务不会出现在“计划内任务”表格，但到期日为今天时会出现在“今日任务”。</p>
         </el-form-item>
-        <el-form-item label="任务标题">
-          <el-input v-model="taskForm.title" />
+        <el-form-item label="任务标题" required>
+          <el-input v-model="taskForm.title" placeholder="例如：整理第 3 章笔记" />
         </el-form-item>
         <el-form-item label="说明">
-          <el-input v-model="taskForm.description" type="textarea" />
+          <el-input v-model="taskForm.description" type="textarea" placeholder="可选，写下具体完成标准" />
         </el-form-item>
         <el-form-item label="截止日期">
-          <el-date-picker v-model="taskForm.due_date" value-format="YYYY-MM-DD" style="width: 100%" />
+          <el-date-picker v-model="taskForm.due_date" value-format="YYYY-MM-DD" class="full-width" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -204,12 +229,14 @@ async function toggleTask(task) {
 async function removePlan(id) {
   await ElMessageBox.confirm('删除计划会同时删除其任务，确认继续？', '删除计划')
   await planApi.remove(id)
+  ElMessage.success('计划已删除')
   await load()
 }
 
 async function removeTask(id) {
   await ElMessageBox.confirm('确认删除该任务？', '删除任务')
   await taskApi.remove(id)
+  ElMessage.success('任务已删除')
   await load()
 }
 

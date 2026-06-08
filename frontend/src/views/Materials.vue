@@ -1,96 +1,115 @@
 <template>
   <AppLayout>
-    <div class="toolbar">
-      <h1 class="page-title" style="margin: 0">学习资料</h1>
-      <el-space>
+    <div class="page-heading">
+      <div>
+        <p class="page-kicker">Knowledge Library</p>
+        <h1 class="page-title">学习资料</h1>
+        <p class="page-subtitle">把课程资料按文件夹整理好，之后就能直接向知识库提问。</p>
+      </div>
+      <div class="toolbar-actions">
         <el-button :icon="FolderAdd" @click="openFolderDialog()">新建文件夹</el-button>
         <el-button type="primary" :icon="Upload" :loading="uploading" @click="uploadDialog = true">
           上传资料
         </el-button>
-      </el-space>
+      </div>
     </div>
 
     <div class="material-layout">
       <div class="panel folder-panel">
-        <div
-          :class="['folder-item', selectedFolderId === null ? 'active' : '']"
-          @click="selectFolder(null)"
-        >
-          <span>全部资料</span>
-          <el-tag size="small">{{ totalCount }}</el-tag>
-        </div>
-        <div
-          :class="['folder-item', selectedFolderId === 'uncategorized' ? 'active' : '']"
-          @click="selectFolder('uncategorized')"
-        >
-          <span>未分类</span>
-        </div>
-        <div
-          v-for="folder in folders"
-          :key="folder.id"
-          :class="['folder-item', selectedFolderId === folder.id ? 'active' : '']"
-          @click="selectFolder(folder.id)"
-        >
-          <span>{{ folder.name }}</span>
-          <el-dropdown trigger="click" @command="(command) => handleFolderCommand(command, folder)">
-            <el-button text :icon="MoreFilled" @click.stop />
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="edit">重命名</el-dropdown-item>
-                <el-dropdown-item command="delete">删除</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+        <h3 class="panel-title">资料文件夹</h3>
+        <p class="panel-subtitle">选择范围后右侧列表会自动更新。</p>
+        <div class="folder-list section-gap">
+          <button
+            type="button"
+            :class="['folder-row', selectedFolderId === null ? 'active' : '']"
+            @click="selectFolder(null)"
+          >
+            <span>全部资料</span>
+            <el-tag size="small">{{ totalCount }}</el-tag>
+          </button>
+          <button
+            type="button"
+            :class="['folder-row', selectedFolderId === 'uncategorized' ? 'active' : '']"
+            @click="selectFolder('uncategorized')"
+          >
+            <span>未分类</span>
+            <el-tag size="small" type="info">{{ uncategorizedCount }}</el-tag>
+          </button>
+          <div
+            v-for="folder in folders"
+            :key="folder.id"
+            :class="['folder-row', selectedFolderId === folder.id ? 'active' : '']"
+          >
+            <button type="button" class="folder-row-main" @click="selectFolder(folder.id)">
+              {{ folder.name }}
+            </button>
+            <el-dropdown trigger="click" @command="(command) => handleFolderCommand(command, folder)">
+              <el-button text :icon="MoreFilled" aria-label="文件夹更多操作" @click.stop />
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="edit">重命名</el-dropdown-item>
+                  <el-dropdown-item command="delete">删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
         </div>
       </div>
 
       <div class="panel">
         <div class="toolbar">
           <div>
-            <strong>{{ currentFolderName }}</strong>
-            <span class="muted"> · {{ materials.length }} 个资料</span>
+            <h3 class="panel-title">{{ currentFolderName }}</h3>
+            <p class="panel-subtitle">当前展示 {{ materials.length }} 个资料，已完成处理的资料可用于 AI 问答。</p>
           </div>
-          <el-button :icon="Refresh" @click="loadMaterials">刷新</el-button>
+          <el-button :icon="Refresh" :loading="loading" @click="loadMaterials">刷新</el-button>
         </div>
 
-        <el-table :data="materials" v-loading="loading">
-          <el-table-column prop="title" label="标题" min-width="180" />
-          <el-table-column prop="folder_name" label="文件夹" width="140">
-            <template #default="{ row }">{{ row.folder_name || '未分类' }}</template>
-          </el-table-column>
-          <el-table-column prop="file_type" label="类型" width="90" />
-          <el-table-column label="状态" width="120">
-            <template #default="{ row }">
-              <el-tag :type="row.status === 'ready' ? 'success' : row.status === 'failed' ? 'danger' : 'warning'">
-                {{ statusText(row.status) }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="关键词" min-width="220">
-            <template #default="{ row }">
-              <el-tag v-for="keyword in row.keywords" :key="keyword" style="margin-right: 6px">
-                {{ keyword }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="260">
-            <template #default="{ row }">
-              <el-button :icon="View" @click="$router.push(`/materials/${row.id}`)">查看</el-button>
-              <el-button :icon="ChatDotRound" @click="$router.push(`/chat?material_id=${row.id}`)">问答</el-button>
-              <el-button :icon="Delete" type="danger" @click="remove(row.id)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+        <div v-if="uploadStatus" :class="['status-banner', uploadStatus.type]">
+          <span>{{ uploadStatus.message }}</span>
+        </div>
+
+        <div class="table-wrap section-gap">
+          <el-table :data="materials" v-loading="loading">
+            <el-table-column prop="title" label="标题" min-width="180" />
+            <el-table-column prop="folder_name" label="文件夹" width="140">
+              <template #default="{ row }">{{ row.folder_name || '未分类' }}</template>
+            </el-table-column>
+            <el-table-column prop="file_type" label="类型" width="90" />
+            <el-table-column label="状态" width="120">
+              <template #default="{ row }">
+                <el-tag :type="statusTag(row.status)">{{ statusText(row.status) }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="关键词" min-width="220">
+              <template #default="{ row }">
+                <div class="keyword-list">
+                  <el-tag v-for="keyword in row.keywords" :key="keyword">{{ keyword }}</el-tag>
+                  <span v-if="!row.keywords?.length" class="muted">暂无关键词</span>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="260">
+              <template #default="{ row }">
+                <el-button :icon="View" @click="$router.push(`/materials/${row.id}`)">查看</el-button>
+                <el-button :icon="ChatDotRound" :disabled="row.status !== 'ready'" @click="$router.push(`/chat?material_id=${row.id}`)">
+                  问答
+                </el-button>
+                <el-button :icon="Delete" type="danger" @click="remove(row.id)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
       </div>
     </div>
 
     <el-dialog v-model="folderDialog" :title="editingFolder ? '重命名文件夹' : '新建文件夹'" width="420px">
       <el-form :model="folderForm" label-position="top">
-        <el-form-item label="文件夹名称">
+        <el-form-item label="文件夹名称" required>
           <el-input v-model="folderForm.name" placeholder="例如：数据库系统" />
         </el-form-item>
         <el-form-item label="说明">
-          <el-input v-model="folderForm.description" type="textarea" placeholder="可选" />
+          <el-input v-model="folderForm.description" type="textarea" placeholder="可选，用来记录这个文件夹的学习范围" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -100,13 +119,16 @@
     </el-dialog>
 
     <el-dialog v-model="uploadDialog" title="上传资料" width="480px">
+      <div class="status-banner warning dialog-tip">
+        上传后会立即解析、切片并建立索引。大文件可能需要等待；默认建议不超过 30MB。
+      </div>
       <el-form label-position="top">
         <el-form-item label="所属文件夹">
-          <el-select v-model="uploadForm.folder_id" clearable placeholder="未分类" style="width: 100%">
+          <el-select v-model="uploadForm.folder_id" clearable placeholder="未分类" class="full-width">
             <el-option v-for="folder in folders" :key="folder.id" :label="folder.name" :value="folder.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="资料文件">
+        <el-form-item label="资料文件" required>
           <el-upload
             ref="uploadRef"
             :auto-upload="false"
@@ -117,14 +139,14 @@
           >
             <el-button :icon="Upload">选择资料文件</el-button>
             <template #tip>
-              <div class="el-upload__tip">支持 PDF、Word(doc/docx)、TXT、Markdown、PPTX、XLSX</div>
+              <div class="el-upload__tip">支持 PDF、Word(doc/docx)、TXT、Markdown、PPTX、XLSX。</div>
             </template>
           </el-upload>
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="uploadDialog = false">取消</el-button>
-        <el-button type="primary" :loading="uploading" @click="upload">上传</el-button>
+        <el-button type="primary" :loading="uploading" @click="upload">上传并处理</el-button>
       </template>
     </el-dialog>
   </AppLayout>
@@ -147,6 +169,7 @@ import { folderApi, materialApi } from '../api/modules'
 import AppLayout from '../components/AppLayout.vue'
 
 const materials = ref([])
+const allMaterials = ref([])
 const folders = ref([])
 const loading = ref(false)
 const uploading = ref(false)
@@ -155,10 +178,12 @@ const folderDialog = ref(false)
 const editingFolder = ref(null)
 const selectedFolderId = ref(null)
 const uploadRef = ref(null)
+const uploadStatus = ref(null)
 const uploadForm = reactive({ file: null, folder_id: null })
 const folderForm = reactive({ name: '', description: '' })
 
-const totalCount = computed(() => folders.value.reduce((sum, folder) => sum + (folder.material_count || 0), 0))
+const totalCount = computed(() => allMaterials.value.length || folders.value.reduce((sum, folder) => sum + (folder.material_count || 0), 0))
+const uncategorizedCount = computed(() => allMaterials.value.filter((item) => !item.folder_id).length)
 const currentFolderName = computed(() => {
   if (selectedFolderId.value === null) return '全部资料'
   if (selectedFolderId.value === 'uncategorized') return '未分类'
@@ -172,11 +197,13 @@ async function loadFolders() {
 async function loadMaterials() {
   loading.value = true
   try {
-    const params = {}
     if (typeof selectedFolderId.value === 'number') {
-      params.folder_id = selectedFolderId.value
+      materials.value = await materialApi.list({ folder_id: selectedFolderId.value })
+      return
     }
-    const rows = await materialApi.list(params)
+
+    const rows = await materialApi.list()
+    allMaterials.value = rows
     materials.value = selectedFolderId.value === 'uncategorized'
       ? rows.filter((item) => !item.folder_id)
       : rows
@@ -185,8 +212,13 @@ async function loadMaterials() {
   }
 }
 
+async function refreshMaterialCounts() {
+  allMaterials.value = await materialApi.list()
+}
+
 async function load() {
   await loadFolders()
+  await refreshMaterialCounts()
   await loadMaterials()
 }
 
@@ -246,15 +278,16 @@ async function upload() {
     return
   }
   uploading.value = true
+  uploadStatus.value = { type: 'warning', message: '资料正在上传和处理，请不要关闭页面。' }
   const form = new FormData()
   form.append('file', uploadForm.file)
   form.append('title', uploadForm.file.name.replace(/\.[^.]+$/, ''))
-  if (uploadForm.folder_id) {
+  if (uploadForm.folder_id !== null && uploadForm.folder_id !== undefined) {
     form.append('folder_id', uploadForm.folder_id)
   }
   try {
-    await materialApi.upload(form)
-    ElMessage.success('上传并处理成功')
+    const result = await materialApi.upload(form)
+    showUploadResult(result)
     uploadDialog.value = false
     uploadForm.file = null
     uploadRef.value?.clearFiles()
@@ -262,6 +295,21 @@ async function upload() {
   } finally {
     uploading.value = false
   }
+}
+
+function showUploadResult(material) {
+  if (material?.status === 'failed') {
+    uploadStatus.value = { type: 'danger', message: `“${material.title || '资料'}”上传完成，但处理失败，请查看详情或重新上传。` }
+    ElMessage.error('资料处理失败')
+    return
+  }
+  if (material?.status === 'processing') {
+    uploadStatus.value = { type: 'warning', message: `“${material.title || '资料'}”已上传，仍在处理中，稍后刷新查看状态。` }
+    ElMessage.warning('资料仍在处理中')
+    return
+  }
+  uploadStatus.value = { type: '', message: `“${material?.title || '资料'}”已上传并处理完成，可以开始问答。` }
+  ElMessage.success('上传并处理完成')
 }
 
 async function remove(id) {
@@ -277,6 +325,10 @@ function statusText(status) {
     processing: '处理中',
     failed: '失败'
   }[status] || status
+}
+
+function statusTag(status) {
+  return status === 'ready' ? 'success' : status === 'failed' ? 'danger' : 'warning'
 }
 
 onMounted(load)
