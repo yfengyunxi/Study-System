@@ -27,12 +27,17 @@ def create_plan():
     if not title:
         return jsonify({"message": "计划标题不能为空"}), 400
 
+    try:
+        start_date, end_date = _parse_plan_dates(data)
+    except ValueError as exc:
+        return jsonify({"message": str(exc)}), 400
+
     plan = StudyPlan(
         user_id=user_id,
         title=title,
         description=(data.get("description") or "").strip(),
-        start_date=_parse_date(data.get("start_date")),
-        end_date=_parse_date(data.get("end_date")),
+        start_date=start_date,
+        end_date=end_date,
     )
     db.session.add(plan)
     db.session.commit()
@@ -58,10 +63,14 @@ def update_plan(plan_id):
         return jsonify({"message": "学习计划不存在"}), 404
 
     data = request.get_json(silent=True) or {}
+    try:
+        start_date, end_date = _parse_plan_dates(data)
+    except ValueError as exc:
+        return jsonify({"message": str(exc)}), 400
     plan.title = (data.get("title") or plan.title).strip()
     plan.description = (data.get("description") or "").strip()
-    plan.start_date = _parse_date(data.get("start_date"))
-    plan.end_date = _parse_date(data.get("end_date"))
+    plan.start_date = start_date
+    plan.end_date = end_date
     db.session.commit()
     return jsonify(plan.to_dict(include_tasks=True))
 
@@ -78,7 +87,22 @@ def delete_plan(plan_id):
     return jsonify({"message": "删除成功"})
 
 
-def _parse_date(value):
+def _parse_date_or_error(value):
     if not value:
         return None
-    return datetime.strptime(value, "%Y-%m-%d").date()
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        raise ValueError("日期格式必须为 YYYY-MM-DD")
+
+
+def _parse_plan_dates(data):
+    start_date = _parse_date_or_error(data.get("start_date"))
+    end_date = _parse_date_or_error(data.get("end_date"))
+    if start_date and end_date and end_date < start_date:
+        raise ValueError("结束日期不能早于开始日期")
+    return start_date, end_date
+
+
+def _parse_date(value):
+    return _parse_date_or_error(value)
