@@ -1,120 +1,45 @@
 <template>
   <AppLayout>
-    <div class="page-heading">
-      <div>
-        <p class="page-kicker">AI Study Chat</p>
-        <h1 class="page-title">AI 问答</h1>
-        <p class="page-subtitle">选择资料范围后提问，AI 会结合文本片段和视觉资料给出回答。</p>
-      </div>
-      <el-tag size="large">{{ currentScopeText }}</el-tag>
-    </div>
+    <PageHeader
+      kicker="AI Study Session"
+      title="AI 学习会话"
+      subtitle="明确选择通用、全部资料、文件夹或单资料范围，回答会把证据和正文分开呈现。"
+    >
+      <template #actions>
+        <el-tag size="large">{{ currentScopeText }}</el-tag>
+      </template>
+    </PageHeader>
 
-    <div class="chat-layout">
-      <div class="panel chat-sidebar">
-        <h3 class="panel-title">问答范围</h3>
-        <p class="panel-subtitle">默认会从全部已处理资料中检索，也可以缩小到文件夹或单份资料。</p>
-        <el-radio-group v-model="scopeType" class="scope-radios" @change="handleScopeChange">
-          <el-radio-button label="all">全部</el-radio-button>
-          <el-radio-button label="folder">文件夹</el-radio-button>
-          <el-radio-button label="material">单份资料</el-radio-button>
-        </el-radio-group>
-
-        <el-select
-          v-if="scopeType === 'folder'"
-          v-model="selectedFolder"
-          clearable
-          placeholder="选择文件夹"
-          class="full-width"
-        >
-          <el-option v-for="folder in folders" :key="folder.id" :label="folder.name" :value="folder.id" />
-        </el-select>
-
-        <el-select
-          v-if="scopeType === 'material'"
-          v-model="selectedMaterial"
-          clearable
-          placeholder="选择资料"
-          class="full-width"
-        >
-          <el-option
-            v-for="material in readyMaterials"
-            :key="material.id"
-            :label="`${material.folder_name || '未分类'} / ${material.title}`"
-            :value="material.id"
-          />
-        </el-select>
-
-        <div v-if="!isScopeReady" class="status-banner warning section-gap">
-          {{ scopeType === 'folder' ? '请选择一个文件夹后再提问。' : '请选择一份已完成处理的资料后再提问。' }}
-        </div>
-        <div v-else class="status-banner section-gap">
-          当前范围：{{ currentScopeText }}
-        </div>
-
-        <div class="toolbar section-gap">
-          <h3 class="panel-title">历史记录</h3>
-        </div>
-        <el-empty v-if="!history.length" description="暂无历史" />
-        <el-scrollbar v-else height="430px">
-          <div class="history-list">
-            <button
-              v-for="item in history"
-              :key="item.id"
-              type="button"
-              class="history-item"
-              @click="loadHistory(item)"
-            >
-              <strong>{{ item.question }}</strong>
-              <p class="muted">{{ item.answer.slice(0, 58) }}</p>
-            </button>
-          </div>
+    <div class="chat-layout chat-workbench">
+      <aside class="panel chat-sidebar">
+        <h3 class="panel-title">历史问答</h3>
+        <p class="panel-subtitle">点击历史会话继续学习，旧记录自动迁移。</p>
+        <el-button class="full-width" :icon="Plus" @click="createNewConversation">新建会话</el-button>
+        <el-empty v-if="!conversations.length" description="暂无历史会话" />
+        <el-scrollbar v-else height="480px" class="section-gap">
+          <button
+            v-for="conv in conversations"
+            :key="conv.id"
+            type="button"
+            :class="['history-item', { active: activeConversation?.id === conv.id }]"
+            @click="switchConversation(conv)"
+          >
+            <strong>{{ conv.title }}</strong>
+            <p class="muted">{{ conv.updated_at?.slice(0, 16) || conv.created_at?.slice(0, 16) }}</p>
+          </button>
         </el-scrollbar>
-      </div>
+      </aside>
 
-      <div class="panel chat-window">
+      <section class="panel chat-window">
+        <div v-if="scopeBanner" class="status-banner warning">{{ scopeBanner }}</div>
         <div class="messages">
-          <el-empty
-            v-if="!messages.length && !asking"
-            description="可以直接向全部资料提问，也可以选择文件夹或单份资料。"
-          />
-          <template v-for="(message, index) in messages" :key="index">
-            <div :class="['message', message.role, { error: message.error }]">{{ message.content }}</div>
+          <el-empty v-if="!messages.length && !asking" description="选择范围后开始提问，通用问答不会显示资料引用。" />
+          <template v-for="(message, index) in messages" :key="message.id || index">
+            <MessageBubble :role="message.role" :content="message.content" :error="message.error" />
             <div v-if="message.role === 'assistant'" class="message-actions">
               <el-button size="small" @click="copyAnswer(message.content)">复制答案</el-button>
-              <el-button v-if="message.error && lastFailedQuestion" size="small" type="primary" :loading="asking" @click="retryLastFailed">
-                重试问题
-              </el-button>
-            </div>
-            <div v-if="message.references?.length" class="section-gap">
-              <el-collapse>
-                <el-collapse-item :title="`查看引用来源（${message.references.length}）`">
-                  <div
-                    v-for="ref in message.references"
-                    :key="referenceKey(ref)"
-                    class="source-card"
-                  >
-                    <strong>
-                      {{ ref.folder_name || '未分类' }} / {{ ref.title || `资料 ${ref.material_id}` }}
-                      <template v-if="ref.type === 'image'">
-                        · 视觉资料 {{ ref.page_number ? `第 ${ref.page_number} 页` : ref.asset_index + 1 }}
-                      </template>
-                      <template v-else>
-                        · 片段 {{ ref.chunk_index + 1 }}
-                      </template>
-                    </strong>
-                    <template v-if="ref.type === 'image'">
-                      <p>{{ ref.caption }}</p>
-                      <img
-                        v-if="referenceImageUrls[ref.asset_id]"
-                        :src="referenceImageUrls[ref.asset_id]"
-                        :alt="ref.caption"
-                        class="reference-image"
-                      />
-                    </template>
-                    <p v-else>{{ ref.content }}</p>
-                  </div>
-                </el-collapse-item>
-              </el-collapse>
+              <el-button v-if="message.status === 'failed_timeout' || message.status === 'failed_error'" size="small" type="primary" :loading="retryingId === message.id" @click="retryFailed(message)">重试</el-button>
+              <el-button v-if="activeConversation" size="small" type="danger" :icon="Delete" @click="confirmDeleteConversation">删除会话</el-button>
             </div>
           </template>
           <div v-if="asking" class="message assistant" role="status" aria-live="polite">
@@ -127,42 +52,49 @@
           </div>
         </div>
         <div class="chat-input">
-          <el-input
-            v-model="question"
-            type="textarea"
-            :rows="2"
-            resize="none"
-            placeholder="请输入学习问题，例如：这个文件夹下的资料主要讲了什么？"
-            @keydown.ctrl.enter="ask"
-          />
+          <el-input v-model="question" type="textarea" :rows="2" resize="none" placeholder="请输入学习问题；Ctrl + Enter 发送" @keydown.ctrl.enter.prevent="ask" />
           <el-button type="primary" :loading="asking" :disabled="!canSend" :icon="Promotion" @click="ask">发送</el-button>
         </div>
-      </div>
+      </section>
+
+      <aside class="panel chat-context-panel">
+        <h3 class="panel-title">学习范围与证据</h3>
+        <p class="panel-subtitle">通用问答不会伪装成资料证据；资料问答会显示可用引用。</p>
+        <ScopeSelector :scope-type="scopeType" :folder-id="selectedFolder" :material-id="selectedMaterial" :folders="folders" :materials="materials" @update:scope-type="changeScope" @update:folder-id="selectedFolder = $event" @update:material-id="selectedMaterial = $event" />
+        <div v-if="!isScopeReady" class="status-banner warning section-gap">请选择完整范围后再提问。</div>
+        <div v-else class="status-banner section-gap">当前范围：{{ currentScopeText }}</div>
+        <EvidencePanel class="section-gap" :references="activeReferences" />
+      </aside>
     </div>
   </AppLayout>
 </template>
 
 <script setup>
-import { Promotion } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { Delete, Plus, Promotion } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { chatApi, folderApi, materialApi } from '../api/modules'
 import AppLayout from '../components/AppLayout.vue'
+import EvidencePanel from '../components/study/EvidencePanel.vue'
+import MessageBubble from '../components/study/MessageBubble.vue'
+import PageHeader from '../components/study/PageHeader.vue'
+import ScopeSelector from '../components/study/ScopeSelector.vue'
 
 const route = useRoute()
 const materials = ref([])
 const folders = ref([])
-const history = ref([])
+const conversations = ref([])
+const activeConversation = ref(null)
 const messages = ref([])
 const question = ref('')
-const scopeType = ref('all')
+const scopeType = ref(localStorage.getItem('studyhub.defaultScope') || 'all')
 const selectedFolder = ref(null)
 const selectedMaterial = ref(null)
+const scopeBanner = ref('')
 const asking = ref(false)
-const referenceImageUrls = ref({})
-const lastFailedQuestion = ref('')
+const retryingId = ref(null)
 
 const readyMaterials = computed(() => materials.value.filter((item) => item.status === 'ready'))
 const selectedFolderName = computed(() => folders.value.find((folder) => folder.id === selectedFolder.value)?.name)
@@ -174,44 +106,123 @@ const isScopeReady = computed(() => {
 })
 const canSend = computed(() => Boolean(question.value.trim()) && isScopeReady.value && !asking.value)
 const currentScopeText = computed(() => {
+  if (scopeType.value === 'general') return '通用问答'
   if (scopeType.value === 'folder') return selectedFolderName.value ? `文件夹：${selectedFolderName.value}` : '文件夹范围未选择'
   if (scopeType.value === 'material') return selectedMaterialName.value ? `资料：${selectedMaterialName.value}` : '单份资料未选择'
   return '全部已处理资料'
 })
+const activeReferences = computed(() => [...messages.value].reverse().find((message) => message.references?.length)?.references || [])
+
+function changeScope(value) {
+  scopeType.value = value
+  selectedFolder.value = null
+  selectedMaterial.value = null
+  scopeBanner.value = ''
+}
 
 async function load() {
-  folders.value = await folderApi.list()
-  materials.value = await materialApi.list()
-  history.value = await chatApi.history()
+  const [folderRows, materialRows] = await Promise.all([
+    folderApi.list(),
+    materialApi.list()
+  ])
+  folders.value = folderRows
+  materials.value = materialRows
+  await loadConversations()
+  applyRouteScope()
+}
 
-  const routeMaterial = Number(route.query.material_id)
-  if (routeMaterial) {
-    const material = readyMaterials.value.find((item) => item.id === routeMaterial)
-    if (material) {
-      scopeType.value = 'material'
-      selectedMaterial.value = routeMaterial
-    } else {
-      ElMessage.warning('链接中的资料不存在或尚未处理完成，已切回全部资料范围')
-      scopeType.value = 'all'
-      selectedMaterial.value = null
-    }
-  }
-
-  const routeFolder = Number(route.query.folder_id)
-  if (routeFolder) {
-    const folder = folders.value.find((item) => item.id === routeFolder)
-    if (folder) {
-      scopeType.value = 'folder'
-      selectedFolder.value = routeFolder
-    } else {
-      ElMessage.warning('链接中的文件夹不存在，已切回全部资料范围')
-      scopeType.value = 'all'
-      selectedFolder.value = null
+async function loadConversations() {
+  try {
+    const result = await chatApi.conversations({ page: 1, limit: 50 })
+    conversations.value = result.conversations || []
+  } catch {
+    // fallback: load legacy history as conversation-like items
+    try {
+      const rows = await chatApi.history()
+      conversations.value = rows.map((item) => ({
+        id: item.conversation_id || item.id,
+        title: item.question?.slice(0, 40) || '历史问答',
+        created_at: item.created_at,
+        updated_at: item.created_at
+      }))
+    } catch {
+      // silent
     }
   }
 }
 
-function handleScopeChange() {
+async function createNewConversation() {
+  const scope = scopeType.value === 'uncategorized'
+    ? { scope_type: 'uncategorized', folder_id: null }
+    : { scope_type: scopeType.value }
+  try {
+    const result = await chatApi.createConversation({ title: '新会话', default_scope: scope })
+    activeConversation.value = result.conversation
+    messages.value = []
+    conversations.value.unshift(result.conversation)
+  } catch {
+    ElMessage.error('创建会话失败')
+  }
+}
+
+async function switchConversation(conv) {
+  activeConversation.value = conv
+  try {
+    const result = await chatApi.messages(conv.id, { page: 1, limit: 50 })
+    messages.value = (result.messages || []).map((m) => ({
+      id: m.id,
+      role: m.role,
+      content: m.content,
+      status: m.status,
+      error_code: m.error_code,
+      retryable: m.retryable,
+      references: m.citations || m.references || []
+    }))
+    if (conv.default_scope) {
+      scopeType.value = conv.default_scope.scope_type || 'all'
+      selectedFolder.value = conv.default_scope.folder_id || null
+      selectedMaterial.value = conv.default_scope.material_id || null
+    }
+  } catch {
+    messages.value = []
+  }
+}
+
+async function confirmDeleteConversation() {
+  if (!activeConversation.value) return
+  await ElMessageBox.confirm('确认删除此会话？', '删除会话')
+  await chatApi.deleteConversation(activeConversation.value.id)
+  conversations.value = conversations.value.filter((c) => c.id !== activeConversation.value.id)
+  activeConversation.value = null
+  messages.value = []
+  ElMessage.success('会话已删除')
+}
+
+function applyRouteScope() {
+  const queryScope = String(route.query.scope_type || '')
+  if (['general', 'all', 'folder', 'material', 'uncategorized'].includes(queryScope)) {
+    scopeType.value = queryScope
+  }
+  if (route.query.prompt) {
+    question.value = String(route.query.prompt)
+  }
+  const routeMaterial = Number(route.query.material_id)
+  if (scopeType.value === 'material' && routeMaterial) {
+    const material = readyMaterials.value.find((item) => item.id === routeMaterial)
+    if (material) selectedMaterial.value = routeMaterial
+    else setScopeFallback('链接中的资料不存在或尚未处理完成，已切回全部资料范围')
+  }
+  const routeFolder = Number(route.query.folder_id)
+  if (scopeType.value === 'folder' && routeFolder) {
+    const folder = folders.value.find((item) => item.id === routeFolder)
+    if (folder) selectedFolder.value = routeFolder
+    else setScopeFallback('链接中的文件夹不存在，已切回全部资料范围')
+  }
+}
+
+function setScopeFallback(message) {
+  scopeBanner.value = message
+  scopeType.value = 'all'
   selectedFolder.value = null
   selectedMaterial.value = null
 }
@@ -226,40 +237,70 @@ async function ask() {
     ElMessage.warning(scopeType.value === 'folder' ? '请选择文件夹' : '请选择资料')
     return
   }
+  if (!activeConversation.value) {
+    await createNewConversation()
+    if (!activeConversation.value) return
+  }
 
-  const conversation = messages.value
-    .filter((message) => ['user', 'assistant'].includes(message.role) && !message.error)
-    .slice(-8)
-    .map((message) => ({ role: message.role, content: message.content }))
+  const requestId = `req-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  const scope = { scope_type: scopeType.value }
+  if (scopeType.value === 'folder' && selectedFolder.value) scope.folder_id = selectedFolder.value
+  if (scopeType.value === 'material' && selectedMaterial.value) scope.material_id = selectedMaterial.value
 
-  messages.value.push({ role: 'user', content: text })
+  messages.value.push({ id: `user-${Date.now()}`, role: 'user', content: text, status: 'succeeded' })
   question.value = ''
   asking.value = true
   try {
-    const payload = { question: text, conversation }
-    if (scopeType.value === 'folder') {
-      payload.folder_id = selectedFolder.value
+    const result = await chatApi.sendMessage(activeConversation.value.id, { content: text, scope, request_id: requestId })
+    if (result.assistant_message) {
+      messages.value.push({
+        id: result.assistant_message.id,
+        role: 'assistant',
+        content: result.assistant_message.content,
+        status: result.assistant_message.status,
+        error_code: result.assistant_message.error_code,
+        retryable: result.assistant_message.retryable,
+        references: result.assistant_message.citations || result.assistant_message.references || []
+      })
     }
-    if (scopeType.value === 'material') {
-      payload.material_id = selectedMaterial.value
-    }
-    const result = await chatApi.ask(payload)
-    messages.value.push({ role: 'assistant', content: result.answer, references: result.references })
-    lastFailedQuestion.value = ''
-    await loadReferenceImages(result.references)
-    history.value.unshift(result)
+    activeConversation.value.updated_at = new Date().toISOString()
   } catch (error) {
-    lastFailedQuestion.value = text
-    messages.value.push({ role: 'assistant', error: true, content: '这次问答没有成功。可以检查资料范围后重试，或稍后再试。' })
+    const isRetryable = error.retryable || error.apiCode === 'AI_TIMEOUT' || error.apiCode === 'UPSTREAM_AI_ERROR'
+    messages.value.push({
+      id: error.apiError?.assistant_message?.id || `error-${Date.now()}`,
+      role: 'assistant',
+      content: error.apiMessage || 'AI 问答失败',
+      status: isRetryable ? 'failed_timeout' : 'failed_error',
+      error_code: error.apiCode,
+      retryable: isRetryable
+    })
   } finally {
     asking.value = false
   }
 }
 
-function retryLastFailed() {
-  if (!lastFailedQuestion.value || asking.value) return
-  question.value = lastFailedQuestion.value
-  ask()
+async function retryFailed(message) {
+  if (!message.id || asking.value) return
+  retryingId.value = message.id
+  try {
+    const result = await chatApi.retryMessage(message.id, { request_id: `retry-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` })
+    // Remove the failed message and add the new one
+    const idx = messages.value.findIndex((m) => m.id === message.id)
+    if (idx > -1) messages.value.splice(idx, 1)
+    if (result.assistant_message) {
+      messages.value.push({
+        id: result.assistant_message.id,
+        role: 'assistant',
+        content: result.assistant_message.content,
+        status: result.assistant_message.status,
+        references: result.assistant_message.citations || result.assistant_message.references || []
+      })
+    }
+  } catch {
+    // error already toasted
+  } finally {
+    retryingId.value = null
+  }
 }
 
 async function copyAnswer(content) {
@@ -271,51 +312,5 @@ async function copyAnswer(content) {
   }
 }
 
-function loadHistory(item) {
-  messages.value = [
-    { role: 'user', content: item.question },
-    { role: 'assistant', content: item.answer, references: item.references }
-  ]
-  loadReferenceImages(item.references).catch(() => {})
-  selectedFolder.value = null
-  selectedMaterial.value = null
-  if (item.material_id && readyMaterials.value.some((material) => material.id === item.material_id)) {
-    scopeType.value = 'material'
-    selectedMaterial.value = item.material_id
-  } else {
-    scopeType.value = 'all'
-  }
-}
-
-async function loadReferenceImages(references = []) {
-  const imageReferences = references.filter((ref) => ref.type === 'image' && ref.asset_id && !referenceImageUrls.value[ref.asset_id])
-  const entries = await Promise.all(
-    imageReferences.map(async (ref) => {
-      try {
-        const blob = await materialApi.assetImage(ref.asset_id)
-        return [ref.asset_id, URL.createObjectURL(blob)]
-      } catch (error) {
-        return null
-      }
-    })
-  )
-  referenceImageUrls.value = {
-    ...referenceImageUrls.value,
-    ...Object.fromEntries(entries.filter(Boolean))
-  }
-}
-
-function referenceKey(ref) {
-  return ref.type === 'image'
-    ? `image-${ref.asset_id}`
-    : `text-${ref.material_id}-${ref.chunk_index}`
-}
-
-function releaseReferenceImages() {
-  Object.values(referenceImageUrls.value).forEach((url) => URL.revokeObjectURL(url))
-  referenceImageUrls.value = {}
-}
-
 onMounted(load)
-onBeforeUnmount(releaseReferenceImages)
 </script>

@@ -1,84 +1,91 @@
 <template>
   <AppLayout>
-    <div class="page-heading">
-      <div>
-        <p class="page-kicker">Knowledge Library</p>
-        <h1 class="page-title">学习资料</h1>
-        <p class="page-subtitle">把课程资料按文件夹整理好，之后就能直接向知识库提问。</p>
-      </div>
-      <div class="toolbar-actions">
+    <PageHeader
+      kicker="Knowledge Library"
+      title="知识库"
+      subtitle="把课程资料按文件夹整理好，之后就能直接向知识库提问。"
+    >
+      <template #actions>
         <el-button :icon="FolderAdd" @click="openFolderDialog()">新建文件夹</el-button>
-        <el-button type="primary" :icon="Upload" :loading="uploading" @click="uploadDialog = true">
+        <el-button type="primary" :icon="Upload" :loading="uploading" @click="openUploadDialog">
           上传资料
         </el-button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
+
+    <MoveMaterialDialog
+      v-model="moveDialog"
+      v-model:folder-id="moveTargetFolderId"
+      :material="moveTargetMaterial"
+      :folders="folders"
+      :loading="moving"
+      @submit="moveMaterial"
+    />
 
     <div class="material-layout">
-      <div class="panel folder-panel">
-        <h3 class="panel-title">资料文件夹</h3>
-        <p class="panel-subtitle">选择范围后右侧列表会自动更新。</p>
-        <div class="folder-list section-gap">
-          <button
-            type="button"
-            :class="['folder-row', selectedFolderId === null ? 'active' : '']"
-            @click="selectFolder(null)"
-          >
-            <span>全部资料</span>
-            <el-tag size="small">{{ totalCount }}</el-tag>
-          </button>
-          <button
-            type="button"
-            :class="['folder-row', selectedFolderId === 'uncategorized' ? 'active' : '']"
-            @click="selectFolder('uncategorized')"
-          >
-            <span>未分类</span>
-            <el-tag size="small" type="info">{{ uncategorizedCount }}</el-tag>
-          </button>
-          <div
-            v-for="folder in folders"
-            :key="folder.id"
-            :class="['folder-row', selectedFolderId === folder.id ? 'active' : '']"
-          >
-            <button type="button" class="folder-row-main" @click="selectFolder(folder.id)">
-              {{ folder.name }}
-            </button>
-            <el-dropdown trigger="click" @command="(command) => handleFolderCommand(command, folder)">
-              <el-button text :icon="MoreFilled" aria-label="文件夹更多操作" @click.stop />
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="edit">重命名</el-dropdown-item>
-                  <el-dropdown-item command="delete">删除</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
-        </div>
-      </div>
+      <WorkbenchPanel title="资料文件夹" subtitle="选择范围后右侧列表会自动更新。" class="folder-panel">
+        <FolderShelf
+          :folders="folders"
+          :selected="selectedFolderId"
+          :total-count="totalCount"
+          :uncategorized-count="uncategorizedCount"
+          @select="selectFolder"
+          @edit="openFolderDialog"
+          @delete="deleteFolder"
+        />
+      </WorkbenchPanel>
 
-      <div class="panel">
-        <div class="toolbar">
-          <div>
-            <h3 class="panel-title">{{ currentFolderName }}</h3>
-            <p class="panel-subtitle">当前展示 {{ materials.length }} 个资料，已完成处理的资料可用于 AI 问答。</p>
-          </div>
-          <el-button :icon="Refresh" :loading="loading" @click="loadMaterials">刷新</el-button>
-        </div>
+      <WorkbenchPanel :title="currentFolderName" :subtitle="`当前展示 ${visibleMaterials.length} 个资料，已完成处理的资料可用于 AI 问答。`">
+        <template #actions>
+          <el-button :icon="Refresh" :loading="loading" @click="load">刷新</el-button>
+        </template>
 
         <div v-if="uploadStatus" :class="['status-banner', uploadStatus.type]">
           <span>{{ uploadStatus.message }}</span>
         </div>
 
-        <div class="table-wrap section-gap">
-          <el-table :data="materials" v-loading="loading">
+        <MaterialFilters
+          v-model:q="q"
+          v-model:status="statusFilter"
+          v-model:file-type="fileTypeFilter"
+          v-model:sort="sortKey"
+          v-model:view-mode="viewMode"
+          v-model:has-visual-assets="hasVisualAssets"
+          :file-types="fileTypes"
+          class="section-gap"
+        />
+
+        <EmptyGuide v-if="!loading && !visibleMaterials.length" class="section-gap" title="这里还没有资料" description="上传第一份课程资料，系统会自动摘要、切片并建立可提问的知识库。">
+          <template #action>
+            <el-button type="primary" @click="openUploadDialog">上传资料</el-button>
+          </template>
+        </EmptyGuide>
+
+        <div v-else-if="viewMode === 'cards'" class="material-card-grid section-gap" v-loading="loading">
+          <MaterialCard
+            v-for="material in visibleMaterials"
+            :key="material.id"
+            :material="material"
+            @view="goDetail"
+            @ask="goAsk"
+            @move="openMoveDialog"
+            @reindex="reindex"
+            @remove="removeMaterial"
+          />
+        </div>
+        <div v-else class="table-wrap section-gap">
+          <el-table :data="visibleMaterials" v-loading="loading">
             <el-table-column prop="title" label="标题" min-width="180" />
             <el-table-column prop="folder_name" label="文件夹" width="140">
               <template #default="{ row }">{{ row.folder_name || '未分类' }}</template>
             </el-table-column>
             <el-table-column prop="file_type" label="类型" width="90" />
             <el-table-column label="状态" width="120">
+              <template #default="{ row }"><StatusBadge :code="row.status" /></template>
+            </el-table-column>
+            <el-table-column label="知识状态" min-width="150">
               <template #default="{ row }">
-                <el-tag :type="statusTag(row.status)">{{ statusText(row.status) }}</el-tag>
+                <span>切片 {{ row.chunk_count || 0 }} · 图 {{ row.visual_asset_count || 0 }}</span>
               </template>
             </el-table-column>
             <el-table-column label="关键词" min-width="220">
@@ -89,18 +96,17 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="260">
+            <el-table-column label="操作" width="300">
               <template #default="{ row }">
-                <el-button :icon="View" @click="$router.push(`/materials/${row.id}`)">查看</el-button>
-                <el-button :icon="ChatDotRound" :disabled="row.status !== 'ready'" @click="$router.push(`/chat?material_id=${row.id}`)">
-                  问答
-                </el-button>
-                <el-button :icon="Delete" type="danger" @click="remove(row.id)">删除</el-button>
+                <el-button :icon="View" @click="goDetail(row)">查看</el-button>
+                <el-button :icon="ChatDotRound" :disabled="row.status !== 'ready'" @click="goAsk(row)">问答</el-button>
+                <el-button :icon="Refresh" @click="reindex(row)">重建</el-button>
+                <el-button :icon="Delete" type="danger" @click="removeMaterial(row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
         </div>
-      </div>
+      </WorkbenchPanel>
     </div>
 
     <el-dialog v-model="folderDialog" :title="editingFolder ? '重命名文件夹' : '新建文件夹'" width="420px">
@@ -118,69 +124,62 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="uploadDialog" title="上传资料" width="480px">
-      <div class="status-banner warning dialog-tip">
-        上传后会立即解析、切片并建立索引。大文件可能需要等待；默认建议不超过 30MB。
-      </div>
-      <el-form label-position="top">
-        <el-form-item label="所属文件夹">
-          <el-select v-model="uploadForm.folder_id" clearable placeholder="未分类" class="full-width">
-            <el-option v-for="folder in folders" :key="folder.id" :label="folder.name" :value="folder.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="资料文件" required>
-          <el-upload
-            ref="uploadRef"
-            :auto-upload="false"
-            :limit="1"
-            accept=".pdf,.doc,.docx,.txt,.md,.markdown,.pptx,.xlsx"
-            :on-change="selectFile"
-            :on-remove="clearFile"
-          >
-            <el-button :icon="Upload">选择资料文件</el-button>
-            <template #tip>
-              <div class="el-upload__tip">支持 PDF、Word(doc/docx)、TXT、Markdown、PPTX、XLSX。</div>
-            </template>
-          </el-upload>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="uploadDialog = false">取消</el-button>
-        <el-button type="primary" :loading="uploading" @click="upload">上传并处理</el-button>
-      </template>
-    </el-dialog>
+    <UploadMaterialDialog
+      ref="uploadDialogRef"
+      v-model="uploadDialog"
+      v-model:folder-id="uploadForm.folder_id"
+      :folders="folders"
+      :uploading="uploading"
+      @select-file="selectFile"
+      @clear-file="clearFile"
+      @submit="upload"
+    />
   </AppLayout>
 </template>
 
 <script setup>
-import {
-  ChatDotRound,
-  Delete,
-  FolderAdd,
-  MoreFilled,
-  Refresh,
-  Upload,
-  View
-} from '@element-plus/icons-vue'
+import { ChatDotRound, Delete, FolderAdd, Refresh, Upload, View } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import { folderApi, materialApi } from '../api/modules'
 import AppLayout from '../components/AppLayout.vue'
+import EmptyGuide from '../components/study/EmptyGuide.vue'
+import FolderShelf from '../components/study/FolderShelf.vue'
+import MaterialCard from '../components/study/MaterialCard.vue'
+import MaterialFilters from '../components/study/MaterialFilters.vue'
+import MoveMaterialDialog from '../components/study/MoveMaterialDialog.vue'
+import PageHeader from '../components/study/PageHeader.vue'
+import StatusBadge from '../components/study/StatusBadge.vue'
+import UploadMaterialDialog from '../components/study/UploadMaterialDialog.vue'
+import WorkbenchPanel from '../components/study/WorkbenchPanel.vue'
 
-const materials = ref([])
+const route = useRoute()
+const router = useRouter()
 const allMaterials = ref([])
 const folders = ref([])
 const loading = ref(false)
 const uploading = ref(false)
 const uploadDialog = ref(false)
+const uploadDialogRef = ref(null)
 const folderDialog = ref(false)
 const editingFolder = ref(null)
 const selectedFolderId = ref(null)
-const uploadRef = ref(null)
 const uploadStatus = ref(null)
+const viewMode = ref(localStorage.getItem('studyhub.materialViewMode') || 'cards')
+const q = ref(String(route.query.q || ''))
+const statusFilter = ref(String(route.query.status || ''))
+const fileTypeFilter = ref('')
+const sortKey = ref('created_desc')
+const hasVisualAssets = ref(null)
 const uploadForm = reactive({ file: null, folder_id: null })
 const folderForm = reactive({ name: '', description: '' })
+const moveDialog = ref(false)
+const moveTargetFolderId = ref(null)
+const moveTargetMaterial = ref(null)
+const moving = ref(false)
+const reindexTimers = new Map()
 
 const totalCount = computed(() => allMaterials.value.length || folders.value.reduce((sum, folder) => sum + (folder.material_count || 0), 0))
 const uncategorizedCount = computed(() => allMaterials.value.filter((item) => !item.folder_id).length)
@@ -189,42 +188,55 @@ const currentFolderName = computed(() => {
   if (selectedFolderId.value === 'uncategorized') return '未分类'
   return folders.value.find((folder) => folder.id === selectedFolderId.value)?.name || '当前文件夹'
 })
+const fileTypes = computed(() => [...new Set(allMaterials.value.map((item) => item.file_type).filter(Boolean))].sort())
+const visibleMaterials = computed(() => {
+  let rows = [...allMaterials.value]
+  if (selectedFolderId.value === 'uncategorized') rows = rows.filter((item) => !item.folder_id)
+  if (typeof selectedFolderId.value === 'number') rows = rows.filter((item) => item.folder_id === selectedFolderId.value)
+  const needle = q.value.trim().toLowerCase()
+  if (needle) {
+    rows = rows.filter((item) => [item.title, item.file_name, item.folder_name, item.summary, item.error_message, ...(item.keywords || [])].join(' ').toLowerCase().includes(needle))
+  }
+  if (statusFilter.value) rows = rows.filter((item) => item.status === statusFilter.value)
+  if (fileTypeFilter.value) rows = rows.filter((item) => item.file_type === fileTypeFilter.value)
+  if (hasVisualAssets.value === true) rows = rows.filter((item) => (item.visual_asset_count || 0) > 0)
+  if (hasVisualAssets.value === false) rows = rows.filter((item) => (item.visual_asset_count || 0) === 0)
+  const richness = (item) => (item.chunk_count || 0) + (item.visual_asset_count || 0) * 3 + Math.min((item.keywords || []).length, 5)
+  rows.sort((a, b) => {
+    if (sortKey.value === 'title_asc') return a.title.localeCompare(b.title, 'zh-CN')
+    if (sortKey.value === 'status') return (a.status || '').localeCompare(b.status || '')
+    if (sortKey.value === 'richness_desc') return richness(b) - richness(a)
+    return new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)
+  })
+  return rows
+})
+
+watch(viewMode, (value) => localStorage.setItem('studyhub.materialViewMode', value))
 
 async function loadFolders() {
   folders.value = await folderApi.list()
 }
 
 async function loadMaterials() {
+  allMaterials.value = await materialApi.list()
+}
+
+async function load() {
   loading.value = true
   try {
-    if (typeof selectedFolderId.value === 'number') {
-      materials.value = await materialApi.list({ folder_id: selectedFolderId.value })
-      return
-    }
-
-    const rows = await materialApi.list()
-    allMaterials.value = rows
-    materials.value = selectedFolderId.value === 'uncategorized'
-      ? rows.filter((item) => !item.folder_id)
-      : rows
+    await Promise.all([loadFolders(), loadMaterials()])
+    if (route.query.upload === '1') openUploadDialog()
   } finally {
     loading.value = false
   }
 }
 
-async function refreshMaterialCounts() {
-  allMaterials.value = await materialApi.list()
+function openUploadDialog() {
+  uploadDialog.value = true
 }
 
-async function load() {
-  await loadFolders()
-  await refreshMaterialCounts()
-  await loadMaterials()
-}
-
-async function selectFolder(folderId) {
+function selectFolder(folderId) {
   selectedFolderId.value = folderId
-  await loadMaterials()
 }
 
 function openFolderDialog(folder = null) {
@@ -247,25 +259,19 @@ async function saveFolder() {
     ElMessage.success('文件夹已创建')
   }
   folderDialog.value = false
-  await loadFolders()
+  await load()
 }
 
-async function handleFolderCommand(command, folder) {
-  if (command === 'edit') {
-    openFolderDialog(folder)
-    return
-  }
+async function deleteFolder(folder) {
   await ElMessageBox.confirm('删除文件夹后，里面的资料会移动到未分类，确认继续？', '删除文件夹')
   await folderApi.remove(folder.id)
-  if (selectedFolderId.value === folder.id) {
-    selectedFolderId.value = null
-  }
+  if (selectedFolderId.value === folder.id) selectedFolderId.value = null
   ElMessage.success('文件夹已删除')
   await load()
 }
 
 function selectFile(file) {
-  uploadForm.file = file.raw
+  uploadForm.file = file
 }
 
 function clearFile() {
@@ -290,7 +296,7 @@ async function upload() {
     showUploadResult(result)
     uploadDialog.value = false
     uploadForm.file = null
-    uploadRef.value?.clearFiles()
+    uploadDialogRef.value?.clearFiles()
     await load()
   } finally {
     uploading.value = false
@@ -299,7 +305,7 @@ async function upload() {
 
 function showUploadResult(material) {
   if (material?.status === 'failed') {
-    uploadStatus.value = { type: 'danger', message: `“${material.title || '资料'}”上传完成，但处理失败，请查看详情或重新上传。` }
+    uploadStatus.value = { type: 'danger', message: `“${material.title || '资料'}”上传完成，但处理失败：${material.error_message || '请查看详情或重新上传。'}` }
     ElMessage.error('资料处理失败')
     return
   }
@@ -312,24 +318,111 @@ function showUploadResult(material) {
   ElMessage.success('上传并处理完成')
 }
 
-async function remove(id) {
+function goDetail(material) {
+  router.push(`/materials/${material.id}`)
+}
+
+function goAsk(material) {
+  if (material.status !== 'ready') return
+  router.push(`/chat?scope_type=material&material_id=${material.id}`)
+}
+
+function openMoveDialog(material) {
+  moveTargetMaterial.value = material
+  moveTargetFolderId.value = material.folder_id
+  moveDialog.value = true
+}
+
+async function moveMaterial(targetFolderId) {
+  moving.value = true
+  try {
+    const result = await materialApi.moveFolder(moveTargetMaterial.value.id, { folder_id: targetFolderId })
+    moveDialog.value = false
+    ElMessage.success(result.changed ? result.message : '资料已在目标文件夹')
+    mergeMaterial(result.material)
+    await loadFolders()
+  } catch (error) {
+    // error already toasted
+  } finally {
+    moving.value = false
+  }
+}
+
+function mergeMaterial(updated) {
+  const idx = allMaterials.value.findIndex((m) => m.id === updated.id)
+  if (idx > -1) allMaterials.value[idx] = updated
+}
+
+async function reindex(material) {
+  const result = await materialApi.reindex(material.id)
+  mergeMaterial(result.material)
+  startReindexPolling(material.id)
+  ElMessage.info('索引重建已开始')
+}
+
+function startReindexPolling(materialId) {
+  stopReindexPolling(materialId)
+  let elapsed = 0
+  const interval = 2000
+  const maxTime = 300000
+  reindexTimers.set(
+    materialId,
+    setInterval(async () => {
+      elapsed += interval
+      if (elapsed > maxTime) {
+        stopReindexPolling(materialId)
+        return
+      }
+      if (elapsed > 60000) {
+        // slow down after 60s
+        clearInterval(reindexTimers.get(materialId))
+        reindexTimers.set(
+          materialId,
+          setInterval(() => pollReindexStatus(materialId), 5000)
+        )
+        return
+      }
+      await pollReindexStatus(materialId)
+    }, interval)
+  )
+}
+
+function stopReindexPolling(materialId) {
+  if (reindexTimers.has(materialId)) {
+    clearInterval(reindexTimers.get(materialId))
+    reindexTimers.delete(materialId)
+  }
+}
+
+async function pollReindexStatus(materialId) {
+  try {
+    const status = await materialApi.indexStatus(materialId)
+    const material = allMaterials.value.find((m) => m.id === materialId)
+    if (material) {
+      material.index_state = status.index_state
+      material.status = status.status
+      material.active_index_generation = status.active_index_generation
+      if (['succeeded', 'failed', 'cancelled', 'stale'].includes(status.job?.status)) {
+        stopReindexPolling(materialId)
+        ElMessage(status.job?.status === 'succeeded' ? '索引重建完成' : '索引重建失败')
+        await load()
+      }
+    }
+  } catch {
+    stopReindexPolling(materialId)
+  }
+}
+
+async function removeMaterial(material) {
   await ElMessageBox.confirm('确认删除该资料及其知识库索引？', '删除资料')
-  await materialApi.remove(id)
+  await materialApi.remove(material.id)
   ElMessage.success('删除成功')
   await load()
 }
 
-function statusText(status) {
-  return {
-    ready: '已完成',
-    processing: '处理中',
-    failed: '失败'
-  }[status] || status
-}
-
-function statusTag(status) {
-  return status === 'ready' ? 'success' : status === 'failed' ? 'danger' : 'warning'
-}
-
 onMounted(load)
+onBeforeUnmount(() => {
+  reindexTimers.forEach((timer) => clearInterval(timer))
+  reindexTimers.clear()
+})
 </script>

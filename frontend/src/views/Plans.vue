@@ -1,98 +1,54 @@
 <template>
   <AppLayout>
-    <div class="page-heading">
-      <div>
-        <p class="page-kicker">Study Plan</p>
-        <h1 class="page-title">学习计划</h1>
-        <p class="page-subtitle">把大目标拆成每天能完成的小任务，让学习进度更清楚。</p>
-      </div>
-      <div class="toolbar-actions">
+    <PageHeader
+      kicker="Study Plan"
+      title="学习计划"
+      subtitle="把大目标拆成每天能完成的小任务，让学习进度更清楚。"
+    >
+      <template #actions>
         <el-button :icon="Plus" @click="openPlanDialog">新建计划</el-button>
-        <el-button type="primary" :icon="CirclePlus" @click="openTaskDialog()">添加任务</el-button>
-      </div>
+        <el-button type="primary" :icon="CirclePlus" @click="openTaskDialog(selectedPlanId)">添加任务</el-button>
+      </template>
+    </PageHeader>
+
+    <div class="grid stats-grid">
+      <MetricCard label="计划数量" :value="plans.length" icon="划" hint="当前账号下的学习计划" />
+      <MetricCard label="待完成任务" :value="todoCount" icon="待" hint="尚未完成的小步骤" />
+      <MetricCard label="今日任务" :value="todayCount" icon="今" hint="今天截止或需要优先处理" />
+      <MetricCard label="整体进度" :value="`${averageProgress}%`" icon="✓" hint="所有任务的平均完成率" />
     </div>
 
-    <div class="grid two-col">
-      <div class="panel">
-        <div class="toolbar">
-          <div>
-            <h3 class="panel-title">计划列表</h3>
-            <p class="panel-subtitle">按阶段组织任务，适合课程复习、实验报告和项目推进。</p>
-          </div>
-        </div>
+    <div class="grid two-col section-gap">
+      <WorkbenchPanel title="学习计划" subtitle="点击计划卡片可聚焦右侧任务。">
+        <template #actions>
+          <el-button v-if="selectedPlanId" @click="selectPlan(null)">显示全部</el-button>
+        </template>
         <el-empty v-if="!loading && !plans.length" description="还没有学习计划，先创建一个本周目标吧" />
-        <div v-else class="table-wrap">
-          <el-table :data="plans" v-loading="loading">
-            <el-table-column prop="title" label="计划" min-width="160" />
-            <el-table-column label="周期" min-width="180">
-              <template #default="{ row }">
-                {{ row.start_date || '未设' }} - {{ row.end_date || '未设' }}
-              </template>
-            </el-table-column>
-            <el-table-column label="任务" width="90">
-              <template #default="{ row }">{{ row.tasks?.length || 0 }}</template>
-            </el-table-column>
-            <el-table-column label="操作" width="190">
-              <template #default="{ row }">
-                <el-button :icon="CirclePlus" @click="openTaskDialog(row.id)">任务</el-button>
-                <el-button :icon="Delete" type="danger" @click="removePlan(row.id)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+        <div v-else class="plan-card-grid">
+          <PlanCard
+            v-for="plan in plans"
+            :key="plan.id"
+            :plan="plan"
+            :active="plan.id === selectedPlanId"
+            @select="selectPlan($event.id)"
+            @add-task="openTaskDialog($event.id)"
+            @remove="removePlan($event)"
+          />
         </div>
-      </div>
+      </WorkbenchPanel>
 
-      <div class="panel">
-        <h3 class="panel-title">今日任务</h3>
-        <p class="panel-subtitle">今天先完成这些小步骤。勾选后会同步更新任务状态。</p>
-        <el-empty v-if="!today.length" description="今天还没有任务，可以添加一个轻量目标" />
-        <div v-else>
-          <div v-for="task in today" :key="task.id" class="task-card">
-            <el-checkbox :model-value="task.status === 'done'" @change="toggleTask(task)">
-              <strong>{{ task.title }}</strong>
-            </el-checkbox>
-            <p class="muted">{{ task.description || '暂无说明' }}</p>
-            <el-tag :type="task.status === 'done' ? 'success' : 'warning'" size="small">
-              {{ task.status === 'done' ? '已完成' : '待完成' }}
-            </el-tag>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel section-gap">
-      <div class="toolbar">
-        <div>
-          <h3 class="panel-title">计划内任务</h3>
-          <p class="panel-subtitle">这里展示已归属到学习计划的任务；未选择计划的任务仍会在“今日任务”中按日期出现。</p>
-        </div>
-      </div>
-      <el-empty v-if="!allTasks.length" description="暂无计划内任务" />
-      <div v-else class="table-wrap">
-        <el-table :data="allTasks">
-          <el-table-column prop="title" label="任务" min-width="180" />
-          <el-table-column prop="due_date" label="截止日期" width="140" />
-          <el-table-column label="状态" width="120">
-            <template #default="{ row }">
-              <el-tag :type="row.status === 'done' ? 'success' : 'info'">
-                {{ row.status === 'done' ? '已完成' : '待完成' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" width="220">
-            <template #default="{ row }">
-              <el-button
-                :icon="Check"
-                :type="row.status === 'done' ? 'info' : 'success'"
-                @click="toggleTask(row)"
-              >
-                {{ row.status === 'done' ? '撤销' : '完成' }}
-              </el-button>
-              <el-button :icon="Delete" type="danger" @click="removeTask(row.id)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
+      <WorkbenchPanel title="任务看板" subtitle="今日、即将到期、未安排和已完成任务。">
+        <template #actions>
+          <el-select v-model="taskScope" class="task-scope-select" placeholder="任务范围">
+            <el-option label="全部任务" value="all" />
+            <el-option label="今日" value="today" />
+            <el-option label="逾期" value="overdue" />
+            <el-option label="即将到期" value="upcoming" />
+            <el-option label="已完成" value="completed" />
+          </el-select>
+        </template>
+        <TaskBoard :columns="boardColumns" @complete="completeTask" @undo="undoTask" @remove="removeTask" />
+      </WorkbenchPanel>
     </div>
 
     <el-dialog v-model="planDialog" title="新建计划" width="460px">
@@ -126,7 +82,7 @@
           <el-select v-model="taskForm.plan_id" clearable placeholder="不选择计划" class="full-width">
             <el-option v-for="plan in plans" :key="plan.id" :label="plan.title" :value="plan.id" />
           </el-select>
-          <p class="panel-subtitle">不选择计划时，该任务不会出现在“计划内任务”表格，但到期日为今天时会出现在“今日任务”。</p>
+          <p class="panel-subtitle">不选择计划时，该任务仍会按截止日期进入任务看板。</p>
         </el-form-item>
         <el-form-item label="任务标题" required>
           <el-input v-model="taskForm.title" placeholder="例如：整理第 3 章笔记" />
@@ -147,32 +103,94 @@
 </template>
 
 <script setup>
-import { Check, CirclePlus, Delete, Plus } from '@element-plus/icons-vue'
+import { CirclePlus, Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import { planApi, taskApi } from '../api/modules'
 import AppLayout from '../components/AppLayout.vue'
+import MetricCard from '../components/study/MetricCard.vue'
+import PageHeader from '../components/study/PageHeader.vue'
+import PlanCard from '../components/study/PlanCard.vue'
+import TaskBoard from '../components/study/TaskBoard.vue'
+import WorkbenchPanel from '../components/study/WorkbenchPanel.vue'
 
+const route = useRoute()
+const router = useRouter()
 const plans = ref([])
 const today = ref([])
+const allTasks = ref([])
 const loading = ref(false)
 const planDialog = ref(false)
 const taskDialog = ref(false)
 const planRange = ref([])
+const selectedPlanId = ref(Number(route.params.id || route.query.plan_id) || null)
+const taskScope = ref(String(route.query.task_scope || 'all'))
 const planForm = reactive({ title: '', description: '' })
 const taskForm = reactive({ plan_id: null, title: '', description: '', due_date: '' })
 
-const allTasks = computed(() => plans.value.flatMap((plan) => plan.tasks || []))
+const todoCount = computed(() => allTasks.value.filter((task) => task.status !== 'done').length)
+const todayCount = computed(() => allTasks.value.filter((task) => task.days_until_due === 0 || task.is_overdue).length)
+const averageProgress = computed(() => {
+  if (!allTasks.value.length) return 0
+  const done = allTasks.value.filter((task) => task.status === 'done').length
+  return Math.round(done / allTasks.value.length * 100)
+})
+
+const visibleTasks = computed(() => {
+  let rows = [...allTasks.value]
+  if (selectedPlanId.value) rows = rows.filter((task) => task.plan_id === selectedPlanId.value)
+  if (taskScope.value === 'today') rows = rows.filter((task) => task.days_until_due === 0 || task.is_overdue)
+  if (taskScope.value === 'overdue') rows = rows.filter((task) => task.is_overdue)
+  if (taskScope.value === 'upcoming') rows = rows.filter((task) => task.status !== 'done' && task.days_until_due > 0)
+  if (taskScope.value === 'completed') rows = rows.filter((task) => task.status === 'done')
+  return rows
+})
+
+const boardColumns = computed(() => {
+  const todayTasks = visibleTasks.value.filter((task) => task.status !== 'done' && task.days_until_due === 0)
+  const overdueTasks = visibleTasks.value.filter((task) => task.status !== 'done' && task.is_overdue)
+  const upcoming = visibleTasks.value.filter((task) => task.status !== 'done' && task.days_until_due > 0)
+  const unscheduled = visibleTasks.value.filter((task) => task.status !== 'done' && !task.due_date)
+  const completed = visibleTasks.value.filter((task) => task.status === 'done')
+  return [
+    { key: 'today', title: '今日', empty: '今天没有截止任务', items: [...overdueTasks, ...todayTasks] },
+    { key: 'upcoming', title: '即将到期', empty: '暂无未来任务', items: upcoming },
+    { key: 'unscheduled', title: '未安排', empty: '暂无未安排任务', items: unscheduled },
+    { key: 'completed', title: '已完成', empty: '暂无已完成任务', items: completed }
+  ]
+})
+
+watch(taskScope, (value) => {
+  router.replace({ query: { ...route.query, task_scope: value === 'all' ? undefined : value } })
+})
 
 async function load() {
   loading.value = true
   try {
-    plans.value = await planApi.list()
-    today.value = await taskApi.today()
+    const [planRows, taskRows, todayRows] = await Promise.all([
+      planApi.list(),
+      taskApi.list(),
+      taskApi.today()
+    ])
+    plans.value = planRows
+    allTasks.value = taskRows
+    today.value = todayRows
+    if (selectedPlanId.value && !plans.value.some((plan) => plan.id === selectedPlanId.value)) {
+      ElMessage.warning('链接中的学习计划不存在，已显示全部计划')
+      selectedPlanId.value = null
+      router.replace('/plans')
+    }
   } finally {
     loading.value = false
   }
+}
+
+function selectPlan(planId) {
+  selectedPlanId.value = planId
+  if (planId) router.push(`/plans/${planId}`)
+  else router.push('/plans')
 }
 
 function openPlanDialog() {
@@ -187,13 +205,14 @@ async function savePlan() {
     ElMessage.warning('请输入计划标题')
     return
   }
-  await planApi.create({
+  const plan = await planApi.create({
     title: planForm.title,
     description: planForm.description,
     start_date: planRange.value?.[0],
     end_date: planRange.value?.[1]
   })
   planDialog.value = false
+  selectedPlanId.value = plan.id
   ElMessage.success('计划已创建')
   await load()
 }
@@ -217,25 +236,27 @@ async function saveTask() {
   await load()
 }
 
-async function toggleTask(task) {
-  if (task.status === 'done') {
-    await taskApi.undo(task.id)
-  } else {
-    await taskApi.complete(task.id)
-  }
+async function completeTask(task) {
+  await taskApi.complete(task.id)
   await load()
 }
 
-async function removePlan(id) {
+async function undoTask(task) {
+  await taskApi.undo(task.id)
+  await load()
+}
+
+async function removePlan(plan) {
   await ElMessageBox.confirm('删除计划会同时删除其任务，确认继续？', '删除计划')
-  await planApi.remove(id)
+  await planApi.remove(plan.id)
+  if (selectedPlanId.value === plan.id) selectedPlanId.value = null
   ElMessage.success('计划已删除')
   await load()
 }
 
-async function removeTask(id) {
+async function removeTask(task) {
   await ElMessageBox.confirm('确认删除该任务？', '删除任务')
-  await taskApi.remove(id)
+  await taskApi.remove(task.id)
   ElMessage.success('任务已删除')
   await load()
 }

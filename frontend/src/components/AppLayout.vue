@@ -11,25 +11,9 @@
       </div>
 
       <nav class="nav-list">
-        <router-link class="nav-link" to="/dashboard">
-          <el-icon class="nav-icon"><House /></el-icon>
-          <span>首页仪表盘</span>
-        </router-link>
-        <router-link class="nav-link" to="/materials">
-          <el-icon class="nav-icon"><FolderOpened /></el-icon>
-          <span>学习资料</span>
-        </router-link>
-        <router-link class="nav-link" to="/chat">
-          <el-icon class="nav-icon"><ChatDotRound /></el-icon>
-          <span>AI 问答</span>
-        </router-link>
-        <router-link class="nav-link" to="/plans">
-          <el-icon class="nav-icon"><Calendar /></el-icon>
-          <span>学习计划</span>
-        </router-link>
-        <router-link class="nav-link" to="/profile">
-          <el-icon class="nav-icon"><User /></el-icon>
-          <span>个人设置</span>
+        <router-link v-for="item in navItems" :key="item.path" class="nav-link" :to="item.path">
+          <el-icon class="nav-icon"><component :is="item.icon" /></el-icon>
+          <span>{{ item.label }}</span>
         </router-link>
       </nav>
 
@@ -44,7 +28,9 @@
           <div class="avatar-bubble" aria-hidden="true">{{ userInitial }}</div>
           <div>
             <strong>{{ displayName }}</strong>
-            <span class="user-goal">{{ auth.user?.study_goal || '设置学习目标后会显示在这里' }}</span>
+            <p class="topbar-goal">
+              {{ auth.user?.study_goal || '设置一个学习目标，让系统更懂你的计划。' }}
+            </p>
           </div>
         </div>
         <el-button :icon="SwitchButton" @click="auth.logout">退出登录</el-button>
@@ -57,10 +43,18 @@
 </template>
 
 <script setup>
-import { Calendar, ChatDotRound, FolderOpened, House, SwitchButton, User } from '@element-plus/icons-vue'
-import { computed } from 'vue'
+import { ChatDotRound, DataBoard, FolderOpened, List, SwitchButton, User } from '@element-plus/icons-vue'
+import { computed, h } from 'vue'
 
 import { useAuthStore } from '../stores/auth'
+
+const navItems = [
+  { path: '/dashboard', label: '今日驾驶舱', icon: DataBoard },
+  { path: '/plans', label: '学习计划', icon: List },
+  { path: '/materials', label: '知识库', icon: FolderOpened },
+  { path: '/chat', label: 'AI 学习会话', icon: ChatDotRound },
+  { path: '/profile', label: '个人设置', icon: User }
+]
 
 const auth = useAuthStore()
 const displayName = computed(() => auth.user?.nickname || auth.user?.username || '学习者')
