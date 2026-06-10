@@ -52,3 +52,14 @@ class VectorStoreService:
 
     def delete(self, where):
         self.collection.delete(where=where)
+
+    def update_metadata_where(self, where, metadata):
+        rows = self.collection.get(where=where, include=["documents", "embeddings", "metadatas"])
+        ids = rows.get("ids") or []
+        if not ids:
+            return
+        documents = rows.get("documents") or []
+        embeddings = rows.get("embeddings") or []
+        metadatas = rows.get("metadatas") or []
+        updated_metadatas = [{**(item or {}), **metadata} for item in metadatas]
+        self.collection.upsert(ids=ids, documents=documents, embeddings=embeddings, metadatas=updated_metadatas)
