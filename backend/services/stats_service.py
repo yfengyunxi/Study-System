@@ -11,7 +11,7 @@ from models.plan import StudyTask
 
 def dashboard_stats(user_id):
     today = date.today()
-    conversations = Conversation.query.filter_by(user_id=user_id, status="active").order_by(Conversation.updated_at.desc().nullslast(), Conversation.created_at.desc()).limit(5).all()
+    conversations = Conversation.query.filter_by(user_id=user_id, status="active").order_by(Conversation.updated_at.desc(), Conversation.created_at.desc()).limit(5).all()
     legacy_recent = ChatHistory.query.filter_by(user_id=user_id).order_by(ChatHistory.created_at.desc()).limit(5).all()
     total_materials = Material.query.filter_by(user_id=user_id).count()
     total_chats = Conversation.query.filter_by(user_id=user_id, status="active").count() or ChatHistory.query.filter_by(user_id=user_id).count()
