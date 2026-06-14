@@ -52,7 +52,7 @@ async function loadImages() {
   const visualRefs = props.references.filter((ref) => isVisual(ref) && ref.asset_id)
   const entries = await Promise.all(visualRefs.map(async (ref) => {
     try {
-      const blob = await materialApi.assetImage(ref.asset_id)
+      const blob = await materialApi.assetImage(ref.asset_id, { silent: true })
       return [ref.asset_id, URL.createObjectURL(blob)]
     } catch (error) {
       return null

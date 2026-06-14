@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -11,6 +12,7 @@ load_dotenv(BASE_DIR / ".env")
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "study-system-dev-secret")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", SECRET_KEY)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=7)
 
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",

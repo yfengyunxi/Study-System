@@ -1,6 +1,8 @@
 <template>
   <div class="scope-selector">
-    <el-segmented :model-value="scopeType" :options="scopeOptions" @update:model-value="$emit('update:scopeType', $event)" />
+    <el-select :model-value="scopeType" placeholder="选择范围" class="full-width" @update:model-value="$emit('update:scopeType', $event)">
+      <el-option v-for="opt in scopeOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+    </el-select>
     <el-select v-if="scopeType === 'folder'" :model-value="folderId" clearable placeholder="选择文件夹" class="full-width" @update:model-value="$emit('update:folderId', $event)">
       <el-option v-for="folder in folders" :key="folder.id" :label="folder.name" :value="folder.id" />
     </el-select>
@@ -21,10 +23,10 @@ const props = defineProps({
 })
 defineEmits(['update:scopeType', 'update:folderId', 'update:materialId'])
 const scopeOptions = [
-  { label: '通用', value: 'general' },
+  { label: '通用问答', value: 'general' },
   { label: '全部资料', value: 'all' },
-  { label: '文件夹', value: 'folder' },
-  { label: '单资料', value: 'material' },
+  { label: '按文件夹', value: 'folder' },
+  { label: '单份资料', value: 'material' },
   { label: '未分类', value: 'uncategorized' }
 ]
 const readyMaterials = computed(() => props.materials.filter((item) => item.status === 'ready'))

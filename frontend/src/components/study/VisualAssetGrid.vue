@@ -29,7 +29,7 @@ async function loadImages() {
   revokeAll()
   const entries = await Promise.all(props.assets.map(async (asset) => {
     try {
-      const blob = await materialApi.assetImage(asset.id)
+      const blob = await materialApi.assetImage(asset.id, { silent: true })
       return [asset.id, URL.createObjectURL(blob)]
     } catch (error) {
       return null

@@ -23,11 +23,13 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
     def to_dict(self):
+        avatar = self.avatar or ""
+        # If it's a local avatar path (not a full URL), keep as-is
         return {
             "id": self.id,
             "username": self.username,
             "nickname": self.nickname,
-            "avatar": self.avatar,
+            "avatar": avatar,
             "study_goal": self.study_goal,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

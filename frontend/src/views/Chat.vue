@@ -6,40 +6,52 @@
       subtitle="明确选择通用、全部资料、文件夹或单资料范围，回答会把证据和正文分开呈现。"
     >
       <template #actions>
+        <el-button v-if="!showContext && activeReferences.length" type="primary" size="small" @click="showContext = true">
+          查看引用 ({{ activeReferences.length }})
+        </el-button>
+        <el-button v-else-if="!showContext" size="small" @click="showContext = true">学习范围</el-button>
         <el-tag size="large">{{ currentScopeText }}</el-tag>
       </template>
     </PageHeader>
 
-    <div class="chat-layout chat-workbench">
+    <div :class="['chat-layout', showContext ? 'chat-workbench' : 'chat-workbench-two']">
       <aside class="panel chat-sidebar">
         <h3 class="panel-title">历史问答</h3>
-        <p class="panel-subtitle">点击历史会话继续学习，旧记录自动迁移。</p>
-        <el-button class="full-width" :icon="Plus" @click="createNewConversation">新建会话</el-button>
-        <el-empty v-if="!conversations.length" description="暂无历史会话" />
-        <el-scrollbar v-else height="480px" class="section-gap">
-          <button
+        <p class="panel-subtitle">点击历史会话继续学习。</p>
+        <el-button class="full-width section-gap" :icon="Plus" @click="createNewConversation">新建会话</el-button>
+        <div class="conversation-list">
+          <el-empty v-if="!conversations.length" description="暂无历史会话" />
+          <div
             v-for="conv in conversations"
             :key="conv.id"
-            type="button"
             :class="['history-item', { active: activeConversation?.id === conv.id }]"
             @click="switchConversation(conv)"
           >
-            <strong>{{ conv.title }}</strong>
-            <p class="muted">{{ conv.updated_at?.slice(0, 16) || conv.created_at?.slice(0, 16) }}</p>
-          </button>
-        </el-scrollbar>
+            <div class="history-item-content">
+              <strong>{{ conv.title }}</strong>
+              <p class="muted">{{ conv.updated_at?.slice(0, 16) || conv.created_at?.slice(0, 16) }}</p>
+            </div>
+            <el-button
+              class="history-delete-btn"
+              :icon="Delete"
+              size="small"
+              text
+              @click.stop="confirmDeleteConversation(conv)"
+              title="删除会话"
+            />
+          </div>
+        </div>
       </aside>
 
       <section class="panel chat-window">
         <div v-if="scopeBanner" class="status-banner warning">{{ scopeBanner }}</div>
-        <div class="messages">
+        <div class="messages" ref="messagesEl">
           <el-empty v-if="!messages.length && !asking" description="选择范围后开始提问，通用问答不会显示资料引用。" />
           <template v-for="(message, index) in messages" :key="message.id || index">
             <MessageBubble :role="message.role" :content="message.content" :error="message.error" />
-            <div v-if="message.role === 'assistant'" class="message-actions">
-              <el-button size="small" @click="copyAnswer(message.content)">复制答案</el-button>
-              <el-button v-if="message.status === 'failed_timeout' || message.status === 'failed_error'" size="small" type="primary" :loading="retryingId === message.id" @click="retryFailed(message)">重试</el-button>
-              <el-button v-if="activeConversation" size="small" type="danger" :icon="Delete" @click="confirmDeleteConversation">删除会话</el-button>
+            <div v-if="message.role === 'assistant' && !message.error" class="message-actions">
+              <el-button size="small" @click="copyAnswer(message.content)">复制</el-button>
+              <el-button v-if="message.retryable" size="small" type="primary" :loading="retryingId === message.id" @click="retryFailed(message)">重试</el-button>
             </div>
           </template>
           <div v-if="asking" class="message assistant" role="status" aria-live="polite">
@@ -52,15 +64,35 @@
           </div>
         </div>
         <div class="chat-input">
-          <el-input v-model="question" type="textarea" :rows="2" resize="none" placeholder="请输入学习问题；Ctrl + Enter 发送" @keydown.ctrl.enter.prevent="ask" />
+          <el-input
+            v-model="question"
+            :rows="1"
+            type="textarea"
+            resize="none"
+            placeholder="输入学习问题，Ctrl+Enter 发送"
+            :autosize="{ minRows: 1, maxRows: 4 }"
+            @keydown.ctrl.enter.prevent="ask"
+            @keydown.enter.exact.prevent="ask"
+          />
           <el-button type="primary" :loading="asking" :disabled="!canSend" :icon="Promotion" @click="ask">发送</el-button>
         </div>
       </section>
 
-      <aside class="panel chat-context-panel">
-        <h3 class="panel-title">学习范围与证据</h3>
-        <p class="panel-subtitle">通用问答不会伪装成资料证据；资料问答会显示可用引用。</p>
-        <ScopeSelector :scope-type="scopeType" :folder-id="selectedFolder" :material-id="selectedMaterial" :folders="folders" :materials="materials" @update:scope-type="changeScope" @update:folder-id="selectedFolder = $event" @update:material-id="selectedMaterial = $event" />
+      <aside v-if="showContext" class="panel chat-context-panel">
+        <div class="context-panel-header">
+          <h3 class="panel-title">学习范围与证据</h3>
+          <el-button :icon="Close" size="small" text @click="showContext = false" />
+        </div>
+        <ScopeSelector
+          :scope-type="scopeType"
+          :folder-id="selectedFolder"
+          :material-id="selectedMaterial"
+          :folders="folders"
+          :materials="materials"
+          @update:scope-type="changeScope"
+          @update:folder-id="selectedFolder = $event"
+          @update:material-id="selectedMaterial = $event"
+        />
         <div v-if="!isScopeReady" class="status-banner warning section-gap">请选择完整范围后再提问。</div>
         <div v-else class="status-banner section-gap">当前范围：{{ currentScopeText }}</div>
         <EvidencePanel class="section-gap" :references="activeReferences" />
@@ -70,9 +102,9 @@
 </template>
 
 <script setup>
-import { Delete, Plus, Promotion } from '@element-plus/icons-vue'
+import { Close, Delete, Plus, Promotion } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { chatApi, folderApi, materialApi } from '../api/modules'
@@ -95,6 +127,8 @@ const selectedMaterial = ref(null)
 const scopeBanner = ref('')
 const asking = ref(false)
 const retryingId = ref(null)
+const showContext = ref(false)
+const messagesEl = ref(null)
 
 const readyMaterials = computed(() => materials.value.filter((item) => item.status === 'ready'))
 const selectedFolderName = computed(() => folders.value.find((folder) => folder.id === selectedFolder.value)?.name)
@@ -120,6 +154,16 @@ function changeScope(value) {
   scopeBanner.value = ''
 }
 
+function scrollToBottom() {
+  nextTick(() => {
+    if (messagesEl.value) {
+      messagesEl.value.scrollTop = messagesEl.value.scrollHeight
+    }
+  })
+}
+
+watch(messages, () => scrollToBottom(), { deep: true })
+
 async function load() {
   const [folderRows, materialRows] = await Promise.all([
     folderApi.list(),
@@ -136,7 +180,6 @@ async function loadConversations() {
     const result = await chatApi.conversations({ page: 1, limit: 50 })
     conversations.value = result.conversations || []
   } catch {
-    // fallback: load legacy history as conversation-like items
     try {
       const rows = await chatApi.history()
       conversations.value = rows.map((item) => ({
@@ -188,13 +231,14 @@ async function switchConversation(conv) {
   }
 }
 
-async function confirmDeleteConversation() {
-  if (!activeConversation.value) return
+async function confirmDeleteConversation(conv) {
   await ElMessageBox.confirm('确认删除此会话？', '删除会话')
-  await chatApi.deleteConversation(activeConversation.value.id)
-  conversations.value = conversations.value.filter((c) => c.id !== activeConversation.value.id)
-  activeConversation.value = null
-  messages.value = []
+  await chatApi.deleteConversation(conv.id)
+  conversations.value = conversations.value.filter((c) => c.id !== conv.id)
+  if (activeConversation.value?.id === conv.id) {
+    activeConversation.value = null
+    messages.value = []
+  }
   ElMessage.success('会话已删除')
 }
 
@@ -276,6 +320,7 @@ async function ask() {
     })
   } finally {
     asking.value = false
+    scrollToBottom()
   }
 }
 
@@ -284,7 +329,6 @@ async function retryFailed(message) {
   retryingId.value = message.id
   try {
     const result = await chatApi.retryMessage(message.id, { request_id: `retry-${Date.now()}-${Math.random().toString(36).slice(2, 8)}` })
-    // Remove the failed message and add the new one
     const idx = messages.value.findIndex((m) => m.id === message.id)
     if (idx > -1) messages.value.splice(idx, 1)
     if (result.assistant_message) {

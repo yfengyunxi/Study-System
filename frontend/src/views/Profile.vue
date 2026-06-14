@@ -6,15 +6,14 @@
       subtitle="调整昵称、头像、学习目标和本地偏好，让学习工作台更贴近你的习惯。"
     />
 
-    <div class="grid two-col">
+    <div class="grid two-col profile-grid">
       <div class="panel profile-card">
         <div class="profile-preview">
           <img
-            v-if="form.avatar && avatarPreviewOk"
-            :src="form.avatar"
+            v-if="avatarSrc"
+            :src="avatarSrc"
             alt="头像预览"
             class="profile-avatar"
-            @error="avatarPreviewOk = false"
           />
           <div v-else class="profile-avatar-placeholder" aria-hidden="true">{{ avatarInitial }}</div>
           <div>
@@ -27,9 +26,22 @@
           <el-form-item label="昵称">
             <el-input v-model="form.nickname" placeholder="例如：小林同学" />
           </el-form-item>
-          <el-form-item label="头像地址">
-            <el-input v-model="form.avatar" placeholder="粘贴图片 URL，保存后继续使用" />
-            <p class="panel-subtitle">如果填写有效图片地址，上方会立即显示头像预览。</p>
+          <el-form-item label="头像">
+            <div class="avatar-upload">
+              <el-upload
+                :auto-upload="false"
+                :show-file-list="false"
+                accept="image/png,image/jpeg,image/gif,image/webp,image/avif"
+                :on-change="onAvatarFileChange"
+              >
+                <el-button :icon="Upload">选择图片</el-button>
+              </el-upload>
+              <el-button v-if="avatarFile" :icon="Check" type="primary" :loading="uploadingAvatar" @click="uploadAvatar">
+                上传头像
+              </el-button>
+              <span v-if="avatarFile" class="avatar-file-name">{{ avatarFile.name }}</span>
+            </div>
+            <p class="panel-subtitle">支持 PNG / JPEG / GIF / WebP / AVIF 格式。</p>
           </el-form-item>
           <el-form-item label="学习目标">
             <el-input v-model="form.study_goal" type="textarea" :rows="4" placeholder="例如：本月完成数据库基础和 SQL 练习" />
@@ -70,8 +82,9 @@
 </template>
 
 <script setup>
+import { Check, Upload } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 
 import { authApi } from '../api/modules'
 import AppLayout from '../components/AppLayout.vue'
@@ -81,30 +94,61 @@ import { useAuthStore } from '../stores/auth'
 
 const auth = useAuthStore()
 const saving = ref(false)
-const avatarPreviewOk = ref(true)
-const form = reactive({ nickname: '', avatar: '', study_goal: '' })
+const uploadingAvatar = ref(false)
+const avatarFile = ref(null)
+const avatarPreviewUrl = ref(null)
+const form = reactive({ nickname: '', study_goal: '' })
 const defaultScope = ref(localStorage.getItem('studyhub.defaultScope') || 'all')
 const answerStyle = ref(localStorage.getItem('studyhub.answerStyle') || 'step_by_step')
 const evidenceExpanded = ref(localStorage.getItem('studyhub.evidenceExpanded') === 'true')
 const defaultTaskMinutes = ref(Number(localStorage.getItem('studyhub.defaultTaskMinutes') || 30))
 const avatarInitial = computed(() => (form.nickname || auth.user?.username || '学').slice(0, 1).toUpperCase())
 
+// Compute the avatar source: local preview > uploaded path > nothing
+const avatarSrc = computed(() => {
+  if (avatarPreviewUrl.value) return avatarPreviewUrl.value
+  const userAvatar = auth.user?.avatar
+  if (userAvatar && userAvatar.startsWith('/api/auth/avatar/')) return userAvatar
+  if (userAvatar && (userAvatar.startsWith('http://') || userAvatar.startsWith('https://'))) return userAvatar
+  return null
+})
+
 onMounted(() => {
   form.nickname = auth.user?.nickname || ''
-  form.avatar = auth.user?.avatar || ''
   form.study_goal = auth.user?.study_goal || ''
 })
 
-watch(() => form.avatar, () => {
-  avatarPreviewOk.value = true
-})
+function onAvatarFileChange(file) {
+  // Revoke previous preview URL
+  if (avatarPreviewUrl.value) {
+    URL.revokeObjectURL(avatarPreviewUrl.value)
+  }
+  avatarFile.value = file.raw
+  avatarPreviewUrl.value = URL.createObjectURL(file.raw)
+}
 
-function isValidImageUrl(url) {
+async function uploadAvatar() {
+  if (!avatarFile.value) {
+    ElMessage.warning('请先选择头像图片')
+    return
+  }
+  uploadingAvatar.value = true
   try {
-    const parsed = new URL(url)
-    return ['http:', 'https:'].includes(parsed.protocol) && /\.(apng|avif|gif|jpe?g|png|svg|webp)(\?.*)?$/i.test(parsed.href)
-  } catch (error) {
-    return false
+    const formData = new FormData()
+    formData.append('file', avatarFile.value)
+    auth.user = await authApi.uploadAvatar(formData)
+    localStorage.setItem('user', JSON.stringify(auth.user))
+    // Clean up preview
+    if (avatarPreviewUrl.value) {
+      URL.revokeObjectURL(avatarPreviewUrl.value)
+      avatarPreviewUrl.value = null
+    }
+    avatarFile.value = null
+    ElMessage.success('头像已更新')
+  } catch {
+    // error already toasted
+  } finally {
+    uploadingAvatar.value = false
   }
 }
 
@@ -117,13 +161,13 @@ function saveLocalPreferences() {
 }
 
 async function save() {
-  if (form.avatar && !isValidImageUrl(form.avatar)) {
-    ElMessage.warning('请输入有效的 http/https 图片地址')
-    return
-  }
   saving.value = true
   try {
-    auth.user = await authApi.updateProfile(form)
+    const payload = {
+      nickname: form.nickname,
+      study_goal: form.study_goal
+    }
+    auth.user = await authApi.updateProfile(payload)
     localStorage.setItem('user', JSON.stringify(auth.user))
     ElMessage.success('设置已保存')
   } finally {

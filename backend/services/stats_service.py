@@ -44,6 +44,9 @@ def dashboard_stats(user_id):
         "material_type_summary": material_types(user_id),
         "folder_summary": folder_material_counts(user_id),
     }
+    pending_today = len([t for t in today_tasks if t.status == "todo"])
+    pending_overdue = StudyTask.query.filter(StudyTask.user_id == user_id, StudyTask.status == "todo", StudyTask.due_date < today).count()
+    base["pending_task_count"] = pending_today + pending_overdue
     base["knowledge_health"] = knowledge_health(user_id)
     base["active_plan_summary"] = active_plan_summary(user_id)
     actions = next_actions(user_id, legacy_recent)
@@ -181,7 +184,10 @@ def next_actions(user_id, recent_chats):
     actions.extend([_action("failed_material", item.title, "资料处理失败", 80, f"/materials/{item.id}", "查看失败原因") for item in failed])
     uncategorized = Material.query.filter_by(user_id=user_id, folder_id=None).limit(2).all()
     actions.extend([_action("unclassified_material", item.title, "尚未分类", 70, "/materials", "整理知识库") for item in uncategorized])
-    actions.extend([_action("recent_chat", chat.question, "继续最近问答", 60, "/chat", "继续追问") for chat in recent_chats[:2]])
+    if recent_chats:
+        chat = recent_chats[0]
+        title = chat.question if len(chat.question) <= 30 else chat.question[:28] + "…"
+        actions.append(_action("recent_chat", f"继续学习：{title}", "上次学习", 60, "/chat", "继续追问"))
     ready = Material.query.filter_by(user_id=user_id, status="ready").order_by(Material.created_at.desc()).limit(2).all()
     actions.extend([_action("ready_new_material", item.title, "可开始资料问答", 50, f"/chat?scope_type=material&material_id={item.id}", "基于资料提问") for item in ready])
     if not actions:

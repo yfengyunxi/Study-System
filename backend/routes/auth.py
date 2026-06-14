@@ -1,11 +1,34 @@
-from flask import Blueprint, jsonify, request
+import os
+from pathlib import Path
+from uuid import uuid4
+
+from flask import Blueprint, current_app, jsonify, request, send_file
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from werkzeug.utils import secure_filename
 
 from extensions import db
 from models.user import User
 
 
 auth_bp = Blueprint("auth", __name__)
+
+ALLOWED_AVATAR_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".avif"}
+
+
+def _avatar_dir():
+    path = Path(current_app.config["UPLOAD_FOLDER"]) / "avatars"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def _clear_old_avatars(user_id):
+    """Remove all old avatar files for this user."""
+    avatar_dir = _avatar_dir()
+    for f in avatar_dir.glob(f"{user_id}.*"):
+        try:
+            f.unlink()
+        except OSError:
+            pass
 
 
 @auth_bp.post("/register")
@@ -62,7 +85,45 @@ def update_profile():
 
     data = request.get_json(silent=True) or {}
     user.nickname = (data.get("nickname") or user.nickname).strip()
-    user.avatar = (data.get("avatar") or user.avatar).strip()
+    # Only accept avatar URL string if no file upload is used (backward compat)
+    if "avatar" in data and isinstance(data.get("avatar"), str):
+        user.avatar = data["avatar"].strip() or user.avatar
     user.study_goal = (data.get("study_goal") or "").strip()
     db.session.commit()
     return jsonify(user.to_dict())
+
+
+@auth_bp.post("/avatar")
+@jwt_required()
+def upload_avatar():
+    user_id = int(get_jwt_identity())
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"message": "用户不存在"}), 404
+
+    file = request.files.get("file")
+    if not file or not file.filename:
+        return jsonify({"message": "请选择头像图片"}), 400
+
+    ext = Path(file.filename).suffix.lower()
+    if ext not in ALLOWED_AVATAR_EXTS:
+        return jsonify({"message": f"仅支持 {', '.join(ALLOWED_AVATAR_EXTS)} 格式"}), 400
+
+    _clear_old_avatars(user_id)
+    filename = f"{user_id}{ext}"
+    filepath = _avatar_dir() / filename
+    file.save(str(filepath))
+
+    user.avatar = f"/api/auth/avatar/{user_id}?v={uuid4().hex[:8]}"
+    db.session.commit()
+    return jsonify(user.to_dict())
+
+
+@auth_bp.get("/avatar/<int:user_id>")
+def serve_avatar(user_id):
+    avatar_dir = _avatar_dir()
+    for ext in ALLOWED_AVATAR_EXTS:
+        path = avatar_dir / f"{user_id}{ext}"
+        if path.exists():
+            return send_file(path)
+    return jsonify({"message": "头像不存在"}), 404

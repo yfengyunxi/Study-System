@@ -22,7 +22,9 @@ http.interceptors.response.use(
     const body = error.response?.data || {}
     const apiError = body.error || {}
     const message = body.message || '请求失败，请稍后重试'
-    ElMessage.error(message)
+    if (!error.config?.silent) {
+      ElMessage.error(message)
+    }
     if (error.response?.status === 401) {
       const auth = useAuthStore()
       auth.logout()

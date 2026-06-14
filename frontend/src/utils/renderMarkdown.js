@@ -3,9 +3,9 @@ import DOMPurify from 'dompurify'
 
 const md = new MarkdownIt({
   html: false,
-  breaks: true,
+  breaks: false,
   linkify: true,
-  typographer: true
+  typographer: false
 })
 
 // Allow links to open safely

@@ -4,14 +4,15 @@ export const authApi = {
   register: (data) => http.post('/auth/register', data),
   login: (data) => http.post('/auth/login', data),
   me: () => http.get('/auth/me'),
-  updateProfile: (data) => http.put('/auth/profile', data)
+  updateProfile: (data) => http.put('/auth/profile', data),
+  uploadAvatar: (formData) => http.post('/auth/avatar', formData)
 }
 
 export const materialApi = {
   list: (params = {}) => http.get('/materials', { params }),
   detail: (id) => http.get(`/materials/${id}`),
   assets: (id) => http.get(`/materials/${id}/assets`),
-  assetImage: (assetId) => http.get(`/materials/assets/${assetId}/image`, { responseType: 'blob' }),
+  assetImage: (assetId, config = {}) => http.get(`/materials/assets/${assetId}/image`, { responseType: 'blob', ...config }),
   upload: (formData) => http.post('/materials/upload', formData),
   remove: (id) => http.delete(`/materials/${id}`),
   moveFolder: (id, data) => http.patch(`/materials/${id}/folder`, data),

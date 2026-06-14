@@ -1,8 +1,14 @@
 <template>
   <article class="material-card">
     <div class="material-card-head">
-      <el-tag>{{ material.file_type?.toUpperCase() || 'FILE' }}</el-tag>
-      <StatusBadge :code="material.status" />
+      <div class="material-card-head-left">
+        <el-tag>{{ material.file_type?.toUpperCase() || 'FILE' }}</el-tag>
+        <StatusBadge :code="material.status" />
+        <span v-if="isReindexing" class="reindexing-badge">
+          <el-icon class="reindexing-spin"><Refresh /></el-icon>
+          重建中
+        </span>
+      </div>
     </div>
     <h3>{{ material.title }}</h3>
     <p class="muted">{{ material.folder_name || '未分类' }}</p>
@@ -35,6 +41,7 @@
 </template>
 
 <script setup>
+import { Refresh } from '@element-plus/icons-vue'
 import { computed } from 'vue'
 import StatusBadge from './StatusBadge.vue'
 
@@ -43,4 +50,7 @@ defineEmits(['view', 'ask', 'move', 'reindex', 'remove'])
 
 const visibleKeywords = computed(() => (props.material.keywords || []).slice(0, 4))
 const extraKeywordCount = computed(() => Math.max((props.material.keywords || []).length - 4, 0))
+const isReindexing = computed(() => {
+  return props.material.index_state === 'queued' || props.material.index_state === 'running' || props.material.status === 'processing'
+})
 </script>

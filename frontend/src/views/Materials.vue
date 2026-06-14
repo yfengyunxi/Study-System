@@ -96,12 +96,28 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="300">
+            <el-table-column label="操作" width="200" fixed="right">
               <template #default="{ row }">
-                <el-button :icon="View" @click="goDetail(row)">查看</el-button>
-                <el-button :icon="ChatDotRound" :disabled="row.status !== 'ready'" @click="goAsk(row)">问答</el-button>
-                <el-button :icon="Refresh" @click="reindex(row)">重建</el-button>
-                <el-button :icon="Delete" type="danger" @click="removeMaterial(row)">删除</el-button>
+                <div class="table-actions">
+                  <el-button size="small" :icon="View" @click="goDetail(row)">查看</el-button>
+                  <el-dropdown trigger="click" @command="(cmd) => handleTableAction(cmd, row)">
+                    <el-button size="small">
+                      更多
+                      <el-icon class="el-icon--right"><ArrowDown /></el-icon>
+                    </el-button>
+                    <template #dropdown>
+                      <el-dropdown-menu>
+                        <el-dropdown-item command="ask" :disabled="row.status !== 'ready'">问答</el-dropdown-item>
+                        <el-dropdown-item command="move">移动</el-dropdown-item>
+                        <el-dropdown-item command="reindex">
+                          <span v-if="isReindexing(row)">重建中...</span>
+                          <span v-else>重建索引</span>
+                        </el-dropdown-item>
+                        <el-dropdown-item command="remove" divided>删除</el-dropdown-item>
+                      </el-dropdown-menu>
+                    </template>
+                  </el-dropdown>
+                </div>
               </template>
             </el-table-column>
           </el-table>
@@ -138,7 +154,7 @@
 </template>
 
 <script setup>
-import { ChatDotRound, Delete, FolderAdd, Refresh, Upload, View } from '@element-plus/icons-vue'
+import { ArrowDown, ChatDotRound, Delete, FolderAdd, Refresh, Upload, View } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -357,39 +373,33 @@ async function reindex(material) {
   const result = await materialApi.reindex(material.id)
   mergeMaterial(result.material)
   startReindexPolling(material.id)
-  ElMessage.info('索引重建已开始')
+  ElMessage.info('索引重建已开始，请稍候...')
 }
 
 function startReindexPolling(materialId) {
   stopReindexPolling(materialId)
   let elapsed = 0
   const interval = 2000
-  const maxTime = 300000
-  reindexTimers.set(
-    materialId,
-    setInterval(async () => {
-      elapsed += interval
-      if (elapsed > maxTime) {
-        stopReindexPolling(materialId)
-        return
-      }
-      if (elapsed > 60000) {
-        // slow down after 60s
-        clearInterval(reindexTimers.get(materialId))
-        reindexTimers.set(
-          materialId,
-          setInterval(() => pollReindexStatus(materialId), 5000)
-        )
-        return
-      }
-      await pollReindexStatus(materialId)
-    }, interval)
-  )
+  const maxTime = 600000
+  const poll = async () => {
+    elapsed += interval
+    if (elapsed > maxTime) {
+      stopReindexPolling(materialId)
+      ElMessage.warning('索引重建超时，请稍后手动刷新查看状态')
+      return
+    }
+    const stopped = await pollReindexStatus(materialId)
+    if (!stopped) {
+      const delay = elapsed > 60000 ? 5000 : interval
+      reindexTimers.set(materialId, setTimeout(poll, delay))
+    }
+  }
+  reindexTimers.set(materialId, setTimeout(poll, interval))
 }
 
 function stopReindexPolling(materialId) {
   if (reindexTimers.has(materialId)) {
-    clearInterval(reindexTimers.get(materialId))
+    clearTimeout(reindexTimers.get(materialId))
     reindexTimers.delete(materialId)
   }
 }
@@ -402,14 +412,21 @@ async function pollReindexStatus(materialId) {
       material.index_state = status.index_state
       material.status = status.status
       material.active_index_generation = status.active_index_generation
-      if (['succeeded', 'failed', 'cancelled', 'stale'].includes(status.job?.status)) {
-        stopReindexPolling(materialId)
-        ElMessage(status.job?.status === 'succeeded' ? '索引重建完成' : '索引重建失败')
-        await load()
-      }
     }
+    // Stop polling if job reached terminal state OR material is no longer processing
+    const jobDone = status.job && ['succeeded', 'failed', 'cancelled', 'stale'].includes(status.job.status)
+    const materialDone = status.status && !['processing', 'queued', 'running'].includes(status.status) && !['queued', 'running'].includes(status.index_state)
+    if (jobDone || materialDone) {
+      stopReindexPolling(materialId)
+      const succeeded = status.job?.status === 'succeeded' || status.status === 'ready'
+      ElMessage(succeeded ? '索引重建完成' : `索引重建${status.job?.status || status.status}`)
+      await load()
+      return true
+    }
+    return false
   } catch {
     stopReindexPolling(materialId)
+    return true
   }
 }
 
@@ -418,6 +435,19 @@ async function removeMaterial(material) {
   await materialApi.remove(material.id)
   ElMessage.success('删除成功')
   await load()
+}
+
+function isReindexing(material) {
+  return material.index_state === 'queued' || material.index_state === 'running' || material.status === 'processing'
+}
+
+function handleTableAction(command, row) {
+  switch (command) {
+    case 'ask': goAsk(row); break
+    case 'move': openMoveDialog(row); break
+    case 'reindex': reindex(row); break
+    case 'remove': removeMaterial(row); break
+  }
 }
 
 onMounted(load)

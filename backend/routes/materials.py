@@ -436,8 +436,12 @@ def _run_reindex_job(app, job_id):
             except Exception as exc:
                 current_app.logger.warning("Reindex job failed for material %s", material.id, exc_info=True)
                 material.building_index_generation = None
-                material.index_state = "stale" if material.active_index_generation else "failed"
-                material.status = "ready" if material.active_index_generation else "failed"
+                # Only downgrade index_state if it's still in a transitional state
+                if material.index_state in ("queued", "running"):
+                    material.index_state = "stale" if material.active_index_generation else "failed"
+                # Preserve status set by _process_material; only override if still "processing"
+                if material.status == "processing":
+                    material.status = "ready" if material.active_index_generation else "failed"
                 job.status = "failed"
                 job.phase = "failed"
                 job.last_error = str(exc)

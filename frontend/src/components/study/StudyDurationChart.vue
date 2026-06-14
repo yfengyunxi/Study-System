@@ -34,7 +34,10 @@ function render() {
   const minutes = props.data.map((d) => Math.round((d.duration_seconds || 0) / 60))
   chart.value.setOption({
     color: [cssVar('--color-coral', '#ff7a66')],
-    tooltip: { trigger: 'axis', valueFormatter: (v) => `${v} 分钟` },
+    tooltip: {
+      trigger: 'item',
+      formatter: (params) => `${params.name}<br/>专注 <b>${params.value}</b> 分钟`
+    },
     grid: { left: 32, right: 18, top: 28, bottom: 32 },
     xAxis: { type: 'category', data: props.data.map((d) => d.date), axisTick: { show: false } },
     yAxis: { type: 'value', minInterval: 1, name: '分钟' },
@@ -42,8 +45,8 @@ function render() {
       {
         type: 'bar',
         data: minutes,
-        barWidth: '55%',
-        itemStyle: { borderRadius: [4, 4, 0, 0] }
+        barMaxWidth: 48,
+        itemStyle: { borderRadius: [6, 6, 0, 0] }
       }
     ]
   })
