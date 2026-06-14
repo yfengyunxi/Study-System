@@ -75,7 +75,12 @@ def delete_folder(folder_id):
     if not folder:
         return jsonify({"message": "文件夹不存在"}), 404
 
-    Material.query.filter_by(user_id=user_id, folder_id=folder_id).update({"folder_id": None})
+    affected = Material.query.filter_by(user_id=user_id, folder_id=folder_id).all()
+    for material in affected:
+        material.folder_id = None
+        material.sync_state = "sync_pending"
+        if material.status == "ready":
+            material.index_state = "stale"
     db.session.delete(folder)
     db.session.commit()
     return jsonify({"message": "删除成功，原文件夹内资料已移动到未分类"})

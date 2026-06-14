@@ -11,6 +11,7 @@ from config import Config
 from extensions import cors, db, jwt
 from routes.auth import auth_bp
 from routes.chat import chat_bp
+from routes.focus import focus_bp
 from routes.folders import folders_bp
 from routes.materials import materials_bp
 from routes.plans import plans_bp
@@ -34,6 +35,7 @@ def create_app():
     app.register_blueprint(folders_bp, url_prefix="/api/material-folders")
     app.register_blueprint(materials_bp, url_prefix="/api/materials")
     app.register_blueprint(chat_bp, url_prefix="/api/chat")
+    app.register_blueprint(focus_bp, url_prefix="/api/focus-sessions")
     app.register_blueprint(plans_bp, url_prefix="/api/plans")
     app.register_blueprint(tasks_bp, url_prefix="/api/tasks")
     app.register_blueprint(stats_bp, url_prefix="/api/stats")
