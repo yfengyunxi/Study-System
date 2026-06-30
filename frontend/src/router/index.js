@@ -1,14 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import { useAuthStore } from '../stores/auth'
-import Chat from '../views/Chat.vue'
-import Dashboard from '../views/Dashboard.vue'
-import Login from '../views/Login.vue'
-import MaterialDetail from '../views/MaterialDetail.vue'
-import Materials from '../views/Materials.vue'
-import Plans from '../views/Plans.vue'
-import Profile from '../views/Profile.vue'
-import Register from '../views/Register.vue'
+
+const Chat = () => import('../views/Chat.vue')
+const Dashboard = () => import('../views/Dashboard.vue')
+const Login = () => import('../views/Login.vue')
+const MaterialDetail = () => import('../views/MaterialDetail.vue')
+const Materials = () => import('../views/Materials.vue')
+const Plans = () => import('../views/Plans.vue')
+const Profile = () => import('../views/Profile.vue')
+const Register = () => import('../views/Register.vue')
 
 const routes = [
   { path: '/', redirect: '/dashboard' },

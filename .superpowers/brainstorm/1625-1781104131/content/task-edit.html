@@ -1,0 +1,103 @@
+<h2>任务交互 — 点击卡片 → 弹出编辑面板</h2>
+<p class="subtitle">任务标题旁有 ▸ 图标表示可点击，说明再多也不怕溢出</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">展开计划后 — 任务以简洁卡片展示</div>
+    <div class="mockup-body" style="font-size:11px;line-height:1.5;padding:12px">
+      <div style="font-weight:700;font-size:11px;margin-bottom:6px;color:#c47b09">待完成 (4)</div>
+      <div style="display:grid;gap:5px">
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff8e6;border:1px solid #eadfc8;border-radius:8px;cursor:pointer">
+          <span style="color:#c47b09;font-size:14px">☐</span>
+          <span style="flex:1;font-weight:700;font-size:12px">多表连接与嵌套查询</span>
+          <span style="color:#d64545;font-size:10px">今天截止</span>
+          <span style="color:#6b7280;font-size:14px">▸</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border:1px solid #eadfc8;border-radius:8px;cursor:pointer">
+          <span style="color:#6b7280;font-size:14px">☐</span>
+          <span style="flex:1;font-weight:700;font-size:12px">索引与查询优化笔记</span>
+          <span style="color:#6b7280;font-size:10px">6/13</span>
+          <span style="color:#6b7280;font-size:14px">▸</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border:1px solid #eadfc8;border-radius:8px;cursor:pointer">
+          <span style="color:#6b7280;font-size:14px">☐</span>
+          <span style="flex:1;font-weight:700;font-size:12px">事务ACID与隔离级别</span>
+          <span style="color:#6b7280;font-size:10px">6/17</span>
+          <span style="color:#6b7280;font-size:14px">▸</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border:1px solid #eadfc8;border-radius:8px;cursor:pointer">
+          <span style="color:#6b7280;font-size:14px">☐</span>
+          <span style="flex:1;font-weight:700;font-size:12px">期末复习：真题+错题回顾，做两套模拟卷</span>
+          <span style="color:#6b7280;font-size:10px">6/28</span>
+          <span style="color:#6b7280;font-size:14px">▸</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">点击"多表连接" — 弹出编辑面板</div>
+    <div class="mockup-body" style="font-size:11px;line-height:1.5;padding:12px">
+      <div style="border:2px solid #2f80ed;border-radius:12px;overflow:hidden;background:#fff">
+        <div style="padding:14px 16px;background:#dcebff;font-weight:700;font-size:13px">
+          编辑任务
+        </div>
+        <div style="padding:14px 16px;display:grid;gap:12px">
+          <div>
+            <div style="font-weight:700;font-size:10px;color:#6b7280;margin-bottom:4px">任务标题</div>
+            <input class="mock-input" value="多表连接与嵌套查询" style="width:100%">
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:10px;color:#6b7280;margin-bottom:4px">说明</div>
+            <textarea class="mock-input" rows="3" style="width:100%;resize:none">INNER/LEFT/RIGHT JOIN、EXISTS、子查询的练习。重点理解相关子查询和非相关子查询的区别。从课本第4章挑选5道习题完成。</textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div>
+              <div style="font-weight:700;font-size:10px;color:#6b7280;margin-bottom:4px">截止日期</div>
+              <input class="mock-input" value="2026-06-11" style="width:100%">
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:10px;color:#6b7280;margin-bottom:4px">状态</div>
+              <select style="width:100%;padding:6px 10px;border:1px solid #eadfc8;border-radius:8px;font-size:11px">
+                <option>待完成</option>
+                <option>已完成</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:10px;color:#6b7280;margin-bottom:4px">所属计划</div>
+            <select style="width:100%;padding:6px 10px;border:1px solid #eadfc8;border-radius:8px;font-size:11px">
+              <option>数据库系统概论</option>
+              <option>Python 数据分析实战</option>
+              <option>不选择计划</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;padding:12px 16px;border-top:1px solid #eadfc8;justify-content:flex-end">
+          <button style="padding:8px 18px;border-radius:8px;border:1px solid #d64545;background:#fff;color:#d64545;font-size:11px;cursor:pointer">删除</button>
+          <button style="padding:8px 18px;border-radius:8px;border:1px solid #eadfc8;background:#fff;font-size:11px;cursor:pointer">取消</button>
+          <button style="padding:8px 18px;border-radius:8px;background:#2f80ed;color:#fff;border:none;font-size:11px;cursor:pointer;font-weight:700">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:20px;padding:16px;background:#dcebff;border-radius:12px">
+  <h3 style="margin:0 0 8px">完整交互流程</h3>
+  <p style="margin:0;line-height:1.6">
+    1. 点击计划展开，看到该计划下所有任务（简洁卡片：标题 + 截止日期 + ▸）<br>
+    2. 点击任务卡片 → 弹出右侧编辑面板，可修改：<strong>标题、说明、截止日期、状态、所属计划</strong><br>
+    3. 面板里可以直接"标记完成"或"删除任务"<br>
+    4. 今日待办区的任务卡片同样可点击，弹出同一个编辑面板
+  </p>
+</div>
+
+<div class="cards">
+  <div class="card" data-choice="ok" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>✅ 确认这个方案</h3>
+      <p>任务点击弹出编辑面板，可查看和修改全部字段</p>
+    </div>
+  </div>
+</div>

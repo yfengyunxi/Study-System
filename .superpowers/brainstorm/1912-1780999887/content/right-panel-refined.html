@@ -1,0 +1,60 @@
+<h2>右侧资料面板：片段 + 完整资料的呈现方式</h2>
+<p class="subtitle">你已选择 A「真实聊天工作台」。这里补充右侧面板：既能看 AI 引用的片段，也能切到完整资料；不让整页滚动，每个区域内部滚动。</p>
+
+<div class="mockup">
+  <div class="mockup-header">推荐设计：引用 / 完整资料 / 学习范围 三个标签</div>
+  <div class="mockup-body" style="background:#f7f1e8; padding:14px;">
+    <div style="display:grid; grid-template-columns:170px 1fr 280px; gap:12px; height:520px;">
+      <div style="background:#fffaf3; border:1px solid #eadfce; border-radius:16px; padding:12px; display:flex; flex-direction:column; gap:8px; overflow:hidden;">
+        <div style="font-weight:900; font-size:13px;">会话</div>
+        <div style="height:34px; border-radius:12px; background:#3568ff; color:white; display:flex; align-items:center; padding:0 10px; justify-content:space-between; font-size:12px;">当前会话 <span>×</span></div>
+        <div style="height:34px; border-radius:12px; background:#f1eadf; display:flex; align-items:center; padding:0 10px; justify-content:space-between; font-size:12px;">图表总结 <span>×</span></div>
+        <div style="margin-top:auto; height:32px; border:1px dashed #b8c7ff; color:#3568ff; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:12px;">+ 新会话</div>
+      </div>
+
+      <div style="background:white; border:1px solid #e8dfd2; border-radius:18px; overflow:hidden; display:flex; flex-direction:column;">
+        <div style="height:46px; border-bottom:1px solid #eee4d7; display:flex; align-items:center; justify-content:space-between; padding:0 14px;">
+          <strong>AI 学习助教</strong><span style="font-size:12px; color:#6e7b8a;">超时可重试 · Markdown 已解析</span>
+        </div>
+        <div style="flex:1; padding:16px; overflow:hidden; display:flex; flex-direction:column; gap:12px; background:linear-gradient(#fff,#fbf7ef);">
+          <div style="align-self:flex-end; max-width:70%; padding:10px 12px; border-radius:16px 16px 4px 16px; background:#3568ff; color:white; font-size:13px;">这张图说明了什么？引用完整资料说明。</div>
+          <div style="align-self:flex-start; max-width:82%; padding:12px 14px; border-radius:16px 16px 16px 4px; background:#fff; border:1px solid #eadfce; box-shadow:0 10px 20px rgba(48,38,20,.08); font-size:13px; line-height:1.6;">
+            <b>核心解释</b><br/>• 先基于引用片段回答<br/>• 可在右侧打开原文上下文<br/>• 图片引用会显示可预览资产<br/><span style="color:#3568ff; font-weight:800;">引用：#1 第 3 页片段 · #2 图像资产</span>
+          </div>
+        </div>
+        <div style="padding:12px; border-top:1px solid #eee4d7; display:flex; gap:10px; align-items:flex-end;">
+          <div style="flex:1; min-height:38px; max-height:92px; border:1px solid #d9e0ec; border-radius:16px; display:flex; align-items:center; padding:0 12px; color:#7b8490; font-size:13px;">输入框根据内容自动增高...</div>
+          <div style="width:66px; height:40px; border-radius:16px; background:#3568ff; color:white; display:flex; align-items:center; justify-content:center; font-weight:900;">发送</div>
+        </div>
+      </div>
+
+      <div style="background:#fffaf3; border:1px solid #eadfce; border-radius:18px; padding:12px; display:flex; flex-direction:column; overflow:hidden;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+          <strong>资料面板</strong><span style="font-size:12px; color:#3568ff;">收起范围</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:10px; font-size:12px; font-weight:800;">
+          <div style="height:30px; border-radius:11px; background:#3568ff; color:white; display:flex; align-items:center; justify-content:center;">引用片段</div>
+          <div style="height:30px; border-radius:11px; background:#eef3ff; color:#3568ff; display:flex; align-items:center; justify-content:center;">完整资料</div>
+          <div style="height:30px; border-radius:11px; background:#f1eadf; color:#6d6256; display:flex; align-items:center; justify-content:center;">学习范围</div>
+        </div>
+        <div style="flex:1; overflow:hidden; display:flex; flex-direction:column; gap:9px;">
+          <div style="border:1px solid #dbe5ff; background:#f7faff; border-radius:14px; padding:10px; font-size:12px; line-height:1.45;">
+            <b>#1 文本片段</b><br/>来自《数据仓库》第 3 页<br/><span style="color:#667085;">事实表围绕业务过程建立，维度表描述分析角度...</span><br/><span style="color:#3568ff; font-weight:800;">打开完整资料 →</span>
+          </div>
+          <div style="border:1px solid #dbe5ff; background:#f7faff; border-radius:14px; padding:10px; font-size:12px; line-height:1.45;">
+            <b>#2 图片资产</b>
+            <div style="height:86px; margin-top:8px; border-radius:12px; background:#e7efff; display:flex; align-items:center; justify-content:center; color:#3568ff;">完整图片预览（contain）</div>
+          </div>
+          <div style="border:1px dashed #ccbfae; background:white; border-radius:14px; padding:10px; font-size:12px; line-height:1.45; color:#6d6256;">
+            切到「完整资料」后，这里变成资料阅读器：摘要、全文片段列表、图片网格、定位到引用位置。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros"><h4>会实现</h4><ul><li>默认展示引用片段，避免每次展开学习范围</li><li>一键切到完整资料阅读器，定位引用来源</li><li>右侧面板内部滚动，不撑高页面</li><li>图片引用用完整预览，不再裁剪</li></ul></div>
+  <div class="cons"><h4>暂不扩展</h4><ul><li>不做完整 PDF 阅读器级别的复杂分页</li><li>不做全局资料多选批注系统</li><li>先修主链路，不把番茄钟放进本轮核心</li></ul></div>
+</div>

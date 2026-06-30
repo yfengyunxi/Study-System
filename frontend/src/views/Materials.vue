@@ -66,6 +66,15 @@
             v-for="material in visibleMaterials"
             :key="material.id"
             :material="material"
+            :sortable="sortKey === 'custom'"
+            :class="{ dragging: draggedMaterialId === material.id, 'drag-over': dragOverMaterialId === material.id && draggedMaterialId !== material.id }"
+            :draggable="sortKey === 'custom'"
+            @dragstart="startMaterialDrag(material, $event)"
+            @dragenter.prevent="dragOverMaterialId = material.id"
+            @dragover.prevent
+            @dragleave="clearDragOver(material)"
+            @drop.prevent="dropMaterial(material)"
+            @dragend="endMaterialDrag"
             @view="goDetail"
             @ask="goAsk"
             @move="openMoveDialog"
@@ -74,7 +83,29 @@
           />
         </div>
         <div v-else class="table-wrap section-gap">
-          <el-table :data="visibleMaterials" v-loading="loading">
+          <el-table
+            :data="visibleMaterials"
+            v-loading="loading"
+            row-key="id"
+            :row-class-name="tableRowClassName"
+          >
+            <el-table-column v-if="sortKey === 'custom'" label="" width="48">
+              <template #default="{ row }">
+                <span
+                  class="table-drag-handle"
+                  draggable="true"
+                  title="拖拽排序"
+                  @dragstart.stop="startMaterialDrag(row, $event)"
+                  @dragenter.prevent.stop="dragOverMaterialId = row.id"
+                  @dragover.prevent.stop
+                  @dragleave.stop="clearDragOver(row)"
+                  @drop.prevent.stop="dropMaterial(row)"
+                  @dragend.stop="endMaterialDrag"
+                >
+                  <el-icon><Rank /></el-icon>
+                </span>
+              </template>
+            </el-table-column>
             <el-table-column prop="title" label="标题" min-width="180" />
             <el-table-column prop="folder_name" label="文件夹" width="140">
               <template #default="{ row }">{{ row.folder_name || '未分类' }}</template>
@@ -154,12 +185,13 @@
 </template>
 
 <script setup>
-import { ArrowDown, ChatDotRound, Delete, FolderAdd, Refresh, Upload, View } from '@element-plus/icons-vue'
+import { ArrowDown, ChatDotRound, Delete, FolderAdd, Rank, Refresh, Upload, View } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { folderApi, materialApi } from '../api/modules'
+import { useAuthStore } from '../stores/auth'
 import AppLayout from '../components/AppLayout.vue'
 import EmptyGuide from '../components/study/EmptyGuide.vue'
 import FolderShelf from '../components/study/FolderShelf.vue'
@@ -173,6 +205,7 @@ import WorkbenchPanel from '../components/study/WorkbenchPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuthStore()
 const allMaterials = ref([])
 const folders = ref([])
 const loading = ref(false)
@@ -189,6 +222,9 @@ const statusFilter = ref(String(route.query.status || ''))
 const fileTypeFilter = ref('')
 const sortKey = ref('created_desc')
 const hasVisualAssets = ref(null)
+const customOrder = ref([])
+const draggedMaterialId = ref(null)
+const dragOverMaterialId = ref(null)
 const uploadForm = reactive({ file: null, folder_id: null })
 const folderForm = reactive({ name: '', description: '' })
 const moveDialog = ref(false)
@@ -219,6 +255,7 @@ const visibleMaterials = computed(() => {
   if (hasVisualAssets.value === false) rows = rows.filter((item) => (item.visual_asset_count || 0) === 0)
   const richness = (item) => (item.chunk_count || 0) + (item.visual_asset_count || 0) * 3 + Math.min((item.keywords || []).length, 5)
   rows.sort((a, b) => {
+    if (sortKey.value === 'custom') return materialOrderIndex(a.id) - materialOrderIndex(b.id)
     if (sortKey.value === 'title_asc') return a.title.localeCompare(b.title, 'zh-CN')
     if (sortKey.value === 'status') return (a.status || '').localeCompare(b.status || '')
     if (sortKey.value === 'richness_desc') return richness(b) - richness(a)
@@ -228,6 +265,9 @@ const visibleMaterials = computed(() => {
 })
 
 watch(viewMode, (value) => localStorage.setItem('studyhub.materialViewMode', value))
+watch(sortKey, (value) => {
+  if (value === 'custom') syncCustomOrder()
+})
 
 async function loadFolders() {
   folders.value = await folderApi.list()
@@ -235,6 +275,7 @@ async function loadFolders() {
 
 async function loadMaterials() {
   allMaterials.value = await materialApi.list()
+  syncCustomOrder()
 }
 
 async function load() {
@@ -367,6 +408,7 @@ async function moveMaterial(targetFolderId) {
 function mergeMaterial(updated) {
   const idx = allMaterials.value.findIndex((m) => m.id === updated.id)
   if (idx > -1) allMaterials.value[idx] = updated
+  syncCustomOrder()
 }
 
 async function reindex(material) {
@@ -407,11 +449,15 @@ function stopReindexPolling(materialId) {
 async function pollReindexStatus(materialId) {
   try {
     const status = await materialApi.indexStatus(materialId)
-    const material = allMaterials.value.find((m) => m.id === materialId)
-    if (material) {
-      material.index_state = status.index_state
-      material.status = status.status
-      material.active_index_generation = status.active_index_generation
+    if (status.material) {
+      mergeMaterial(status.material)
+    } else {
+      const material = allMaterials.value.find((m) => m.id === materialId)
+      if (material) {
+        material.index_state = status.index_state
+        material.status = status.status
+        material.active_index_generation = status.active_index_generation
+      }
     }
     // Stop polling if job reached terminal state OR material is no longer processing
     const jobDone = status.job && ['succeeded', 'failed', 'cancelled', 'stale'].includes(status.job.status)
@@ -419,8 +465,8 @@ async function pollReindexStatus(materialId) {
     if (jobDone || materialDone) {
       stopReindexPolling(materialId)
       const succeeded = status.job?.status === 'succeeded' || status.status === 'ready'
-      ElMessage(succeeded ? '索引重建完成' : `索引重建${status.job?.status || status.status}`)
       await load()
+      ElMessage(succeeded ? '索引重建完成' : `索引重建${status.job?.status || status.status}`)
       return true
     }
     return false
@@ -433,8 +479,77 @@ async function pollReindexStatus(materialId) {
 async function removeMaterial(material) {
   await ElMessageBox.confirm('确认删除该资料及其知识库索引？', '删除资料')
   await materialApi.remove(material.id)
+  customOrder.value = customOrder.value.filter((id) => id !== material.id)
+  saveCustomOrder()
   ElMessage.success('删除成功')
   await load()
+}
+
+function customOrderKey() {
+  return `studyhub.materialOrder.${auth.user?.id || 'anonymous'}`
+}
+
+function loadCustomOrder() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(customOrderKey()) || '[]')
+    customOrder.value = Array.isArray(parsed) ? parsed.map(Number).filter(Number.isFinite) : []
+  } catch {
+    customOrder.value = []
+  }
+}
+
+function saveCustomOrder() {
+  localStorage.setItem(customOrderKey(), JSON.stringify(customOrder.value))
+}
+
+function syncCustomOrder() {
+  const ids = allMaterials.value.map((item) => item.id)
+  const idSet = new Set(ids)
+  customOrder.value = [...customOrder.value.filter((id) => idSet.has(id)), ...ids.filter((id) => !customOrder.value.includes(id))]
+  saveCustomOrder()
+}
+
+function materialOrderIndex(id) {
+  const index = customOrder.value.indexOf(id)
+  return index === -1 ? Number.MAX_SAFE_INTEGER : index
+}
+
+function startMaterialDrag(material, event) {
+  if (sortKey.value !== 'custom') return
+  draggedMaterialId.value = material.id
+  dragOverMaterialId.value = null
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', String(material.id))
+}
+
+function clearDragOver(material) {
+  if (dragOverMaterialId.value === material.id) dragOverMaterialId.value = null
+}
+
+function dropMaterial(targetMaterial) {
+  const sourceId = draggedMaterialId.value
+  if (!sourceId || sourceId === targetMaterial.id) {
+    endMaterialDrag()
+    return
+  }
+  syncCustomOrder()
+  const nextOrder = [...customOrder.value]
+  const fromIndex = nextOrder.indexOf(sourceId)
+  const toIndex = nextOrder.indexOf(targetMaterial.id)
+  if (fromIndex === -1 || toIndex === -1) {
+    endMaterialDrag()
+    return
+  }
+  nextOrder.splice(fromIndex, 1)
+  nextOrder.splice(toIndex, 0, sourceId)
+  customOrder.value = nextOrder
+  saveCustomOrder()
+  endMaterialDrag()
+}
+
+function endMaterialDrag() {
+  draggedMaterialId.value = null
+  dragOverMaterialId.value = null
 }
 
 function isReindexing(material) {
@@ -450,7 +565,18 @@ function handleTableAction(command, row) {
   }
 }
 
-onMounted(load)
+function tableRowClassName({ row }) {
+  const classes = []
+  if (sortKey.value === 'custom') classes.push('table-row-sortable')
+  if (draggedMaterialId.value === row.id) classes.push('dragging')
+  if (dragOverMaterialId.value === row.id && draggedMaterialId.value !== row.id) classes.push('drag-over')
+  return classes.join(' ')
+}
+
+onMounted(() => {
+  loadCustomOrder()
+  load()
+})
 onBeforeUnmount(() => {
   reindexTimers.forEach((timer) => clearInterval(timer))
   reindexTimers.clear()

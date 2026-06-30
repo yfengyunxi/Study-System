@@ -1576,6 +1576,20 @@ a:hover {
   box-shadow: var(--shadow-soft);
 }
 
+.material-card[draggable="true"] {
+  cursor: grab;
+}
+
+.material-card.dragging {
+  opacity: 0.55;
+  cursor: grabbing;
+}
+
+.material-card.drag-over {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.14), var(--shadow-soft);
+}
+
 .plan-card.active {
   border-color: rgba(47, 128, 237, 0.38);
   background: linear-gradient(135deg, #ffffff 0%, var(--color-primary-soft) 100%);
@@ -1600,6 +1614,35 @@ a:hover {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.drag-handle {
+  color: var(--color-muted);
+  cursor: grab;
+  font-size: 18px;
+}
+
+.table-drag-handle {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--color-muted);
+  cursor: grab;
+}
+
+.table-drag-handle:hover {
+  color: var(--color-primary-deep);
+  background: var(--color-primary-soft);
+}
+
+.el-table__row.table-row-sortable.dragging > td {
+  opacity: 0.55;
+}
+
+.el-table__row.table-row-sortable.drag-over > td {
+  background: rgba(47, 128, 237, 0.08) !important;
 }
 
 .reindexing-badge {
@@ -1736,12 +1779,15 @@ a:hover {
 /* ---- Plans page: plan overview ---- */
 
 .overview-panel {
+  max-height: 440px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
 .overview-list {
   flex: 1;
+  overflow-y: auto;
   display: grid;
   gap: 10px;
   align-content: start;

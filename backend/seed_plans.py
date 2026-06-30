@@ -1,11 +1,12 @@
 """Seed sample study plans and tasks for the current user."""
 import sys
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 from app import app
 from extensions import db
 from models.plan import StudyPlan, StudyTask
 from models.user import User
+from services.time_service import utc_now
 
 today = date.today()
 
@@ -35,13 +36,13 @@ def seed(user_id):
     tasks_p1 = [
         StudyTask(user_id=user_id, plan_id=p1.id, title="阅读第1章 绪论",
                   description="了解数据库系统基本概念、数据模型分类", due_date=today - timedelta(days=8), status="done",
-                  completed_at=datetime.utcnow() - timedelta(days=8)),
+                  completed_at=utc_now() - timedelta(days=8)),
         StudyTask(user_id=user_id, plan_id=p1.id, title="完成关系代数练习（5道题）",
                   description="选择、投影、连接、除运算", due_date=today - timedelta(days=5), status="done",
-                  completed_at=datetime.utcnow() - timedelta(days=5)),
+                  completed_at=utc_now() - timedelta(days=5)),
         StudyTask(user_id=user_id, plan_id=p1.id, title="SQL 单表查询练习",
                   description="WHERE、GROUP BY、HAVING、ORDER BY", due_date=today - timedelta(days=2), status="done",
-                  completed_at=datetime.utcnow() - timedelta(days=2)),
+                  completed_at=utc_now() - timedelta(days=2)),
         StudyTask(user_id=user_id, plan_id=p1.id, title="多表连接与嵌套查询",
                   description="INNER/LEFT/RIGHT JOIN、EXISTS、子查询", due_date=today, status="todo"),
         StudyTask(user_id=user_id, plan_id=p1.id, title="索引与查询优化笔记",
@@ -68,7 +69,7 @@ def seed(user_id):
     tasks_p2 = [
         StudyTask(user_id=user_id, plan_id=p2.id, title="Pandas 数据读取与清洗",
                   description="read_csv、dropna、fillna、apply", due_date=today - timedelta(days=1), status="done",
-                  completed_at=datetime.utcnow() - timedelta(days=1)),
+                  completed_at=utc_now() - timedelta(days=1)),
         StudyTask(user_id=user_id, plan_id=p2.id, title="数据可视化：Matplotlib 基础",
                   description="折线图、柱状图、散点图、子图布局", due_date=today, status="todo"),
         StudyTask(user_id=user_id, plan_id=p2.id, title="Seaborn 高级图表",
@@ -95,10 +96,10 @@ def seed(user_id):
     tasks_p3 = [
         StudyTask(user_id=user_id, plan_id=p3.id, title="应用层：HTTP/DNS 协议",
                   due_date=today - timedelta(days=18), status="done",
-                  completed_at=datetime.utcnow() - timedelta(days=18)),
+                  completed_at=utc_now() - timedelta(days=18)),
         StudyTask(user_id=user_id, plan_id=p3.id, title="传输层：TCP 三次握手与拥塞控制",
                   due_date=today - timedelta(days=12), status="done",
-                  completed_at=datetime.utcnow() - timedelta(days=12)),
+                  completed_at=utc_now() - timedelta(days=12)),
         StudyTask(user_id=user_id, plan_id=p3.id, title="网络层：IP 分片与路由算法",
                   due_date=today - timedelta(days=6), status="todo"),
         StudyTask(user_id=user_id, plan_id=p3.id, title="链路层与 Wireshark 抓包实验",
@@ -143,16 +144,16 @@ def seed(user_id):
     tasks_p5 = [
         StudyTask(user_id=user_id, plan_id=p5.id, title="矩阵运算练习",
                   due_date=today - timedelta(days=13), status="done",
-                  completed_at=datetime.utcnow() - timedelta(days=13)),
+                  completed_at=utc_now() - timedelta(days=13)),
         StudyTask(user_id=user_id, plan_id=p5.id, title="行列式与秩",
                   due_date=today - timedelta(days=9), status="done",
-                  completed_at=datetime.utcnow() - timedelta(days=9)),
+                  completed_at=utc_now() - timedelta(days=9)),
         StudyTask(user_id=user_id, plan_id=p5.id, title="特征值与特征向量",
                   due_date=today - timedelta(days=5), status="done",
-                  completed_at=datetime.utcnow() - timedelta(days=5)),
+                  completed_at=utc_now() - timedelta(days=5)),
         StudyTask(user_id=user_id, plan_id=p5.id, title="二次型与正定矩阵",
                   due_date=today - timedelta(days=2), status="done",
-                  completed_at=datetime.utcnow() - timedelta(days=2)),
+                  completed_at=utc_now() - timedelta(days=2)),
     ]
     for t in tasks_p5:
         db.session.add(t)
@@ -165,7 +166,7 @@ def seed(user_id):
                   due_date=today + timedelta(days=1), status="todo"),
         StudyTask(user_id=user_id, title="复习昨日 SQL 错题",
                   due_date=today - timedelta(days=1), status="done",
-                  completed_at=datetime.utcnow() - timedelta(days=1)),
+                  completed_at=utc_now() - timedelta(days=1)),
     ]
     for t in standalone:
         db.session.add(t)

@@ -1,0 +1,134 @@
+<h2>学习计划页面 — 三种设计方案对比</h2>
+<p class="subtitle">当前问题：计划横条太长需滚动，四列看板太窄，计划-任务关系不清楚</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">方案 A：折叠面板 + 看板</div>
+    <div class="mockup-body" style="font-size:11px;line-height:1.5">
+      <div style="background:#dcebff;padding:6px 10px;border-radius:8px;margin-bottom:8px;display:flex;gap:12px;justify-content:space-between">
+        <span>📋 4</span><span>📝 18</span><span>🔔 5</span><span>✅ 52%</span>
+      </div>
+      <div style="display:grid;grid-template-columns:240px 1fr;gap:12px">
+        <div style="background:#fff;border:1px solid #eadfc8;border-radius:10px;padding:8px">
+          <div style="padding:8px;border-radius:6px;background:#dcebff;font-weight:700;margin-bottom:4px">▼ 数据库系统概论 <span style="color:#6b7280;font-size:10px">3/7 · 43%</span></div>
+          <div style="padding:8px;font-weight:700;margin-bottom:2px">▸ Python 数据分析 <span style="color:#6b7280;font-size:10px">1/5 · 20%</span></div>
+          <div style="padding:8px;font-weight:700;margin-bottom:2px">▸ 计算机网络 <span style="color:#c47b09;font-size:10px">2 逾期</span></div>
+          <div style="padding:8px;font-weight:700;margin-bottom:2px">▸ 操作系统 <span style="color:#6b7280;font-size:10px">未开始</span></div>
+          <div style="padding:8px;font-weight:700">▸ 线性代数 <span style="color:#18a86b;font-size:10px">✓ 完成</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+          <div style="background:#fff;border:1px solid #eadfc8;border-radius:10px;padding:6px"><div style="font-weight:700;font-size:10px;margin-bottom:4px">逾期/今日 6</div><div style="background:#ffeaea;padding:4px 6px;border-radius:4px;margin-bottom:3px;font-size:10px">□ 多表连接查询</div><div style="background:#fff8e6;padding:4px 6px;border-radius:4px;margin-bottom:3px;font-size:10px">□ TCP三次握手</div></div>
+          <div style="background:#fff;border:1px solid #eadfc8;border-radius:10px;padding:6px"><div style="font-weight:700;font-size:10px;margin-bottom:4px">即将到期 5</div><div style="background:#fff;padding:4px 6px;border-radius:4px;margin-bottom:3px;font-size:10px">□ 索引优化笔记</div></div>
+          <div style="background:#fff;border:1px solid #eadfc8;border-radius:10px;padding:6px"><div style="font-weight:700;font-size:10px;margin-bottom:4px">未安排 4</div></div>
+          <div style="background:#fff;border:1px solid #eadfc8;border-radius:10px;padding:6px"><div style="font-weight:700;font-size:10px;margin-bottom:4px">已完成 8</div><div style="background:#e6f7ee;padding:4px 6px;border-radius:4px;margin-bottom:3px;font-size:10px">✓ SQL单表练习</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">方案 B：Tab 分页式</div>
+    <div class="mockup-body" style="font-size:11px;line-height:1.5">
+      <div style="display:flex;gap:2px;background:#eadfc8;padding:3px;border-radius:10px;margin-bottom:10px">
+        <div style="flex:1;text-align:center;padding:8px;background:#fff;border-radius:8px;font-weight:700">📌 今日</div>
+        <div style="flex:1;text-align:center;padding:8px;font-weight:700;color:#6b7280">📋 看板</div>
+        <div style="flex:1;text-align:center;padding:8px;font-weight:700;color:#6b7280">🎯 计划</div>
+      </div>
+      <div style="background:#dcebff;padding:6px 10px;border-radius:8px;margin-bottom:8px;display:flex;gap:12px;justify-content:space-between">
+        <span>📋 4</span><span>📝 18</span><span>🔔 5</span><span>✅ 52%</span>
+      </div>
+      <div style="font-weight:700;margin-bottom:6px">今日任务 — 2026-06-10</div>
+      <div style="background:#fff;border:1px solid #eadfc8;border-radius:10px;padding:8px;margin-bottom:6px">
+        <div style="color:#2f80ed;font-weight:700;font-size:10px;margin-bottom:4px">📁 数据库系统概论</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:4px 6px;background:#fff8e6;border-radius:4px;margin-bottom:3px"><input type="checkbox"> 多表连接与嵌套查询</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:4px 6px;background:#fff8e6;border-radius:4px"><input type="checkbox"> 整理课程笔记</div>
+      </div>
+      <div style="background:#fff;border:1px solid #eadfc8;border-radius:10px;padding:8px">
+        <div style="color:#2f80ed;font-weight:700;font-size:10px;margin-bottom:4px">📁 Python 数据分析</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:4px 6px;background:#fff8e6;border-radius:4px"><input type="checkbox"> 数据可视化：Matplotlib</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">方案 C：左边栏 + 全宽看板</div>
+    <div class="mockup-body" style="font-size:11px;line-height:1.5">
+      <div style="background:#dcebff;padding:6px 10px;border-radius:8px;margin-bottom:8px;display:flex;gap:12px;justify-content:space-between">
+        <span>📋 4</span><span>📝 18</span><span>🔔 5</span><span>✅ 52%</span>
+      </div>
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:12px">
+        <div style="background:#fff;border:1px solid #eadfc8;border-radius:10px;padding:6px">
+          <div style="padding:6px;border-radius:6px;background:#dcebff;font-weight:700;font-size:11px;margin-bottom:2px">全部计划</div>
+          <div style="padding:6px;font-size:10px;margin-bottom:1px;display:flex;justify-content:space-between"><span>数据库系统概论</span><span style="color:#6b7280">3/7</span></div>
+          <div style="padding:6px;font-size:10px;margin-bottom:1px;display:flex;justify-content:space-between"><span>Python 数据分析</span><span style="color:#6b7280">1/5</span></div>
+          <div style="padding:6px;font-size:10px;margin-bottom:1px;display:flex;justify-content:space-between"><span>计算机网络</span><span style="color:#c47b09">⚠ 2</span></div>
+          <div style="padding:6px;font-size:10px;margin-bottom:1px;display:flex;justify-content:space-between"><span>操作系统</span><span>未开始</span></div>
+          <div style="padding:6px;font-size:10px;display:flex;justify-content:space-between"><span>线性代数</span><span style="color:#18a86b">✓</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+          <div style="background:#fff;border:1px solid #eadfc8;border-radius:8px;padding:4px"><div style="font-weight:700;font-size:9px;margin-bottom:3px">逾期/今日 6</div><div style="background:#ffeaea;padding:3px 5px;border-radius:3px;margin-bottom:2px;font-size:9px">多表连接</div><div style="background:#fff8e6;padding:3px 5px;border-radius:3px;font-size:9px">TCP握手</div></div>
+          <div style="background:#fff;border:1px solid #eadfc8;border-radius:8px;padding:4px"><div style="font-weight:700;font-size:9px;margin-bottom:3px">即将到期 5</div></div>
+          <div style="background:#fff;border:1px solid #eadfc8;border-radius:8px;padding:4px"><div style="font-weight:700;font-size:9px;margin-bottom:3px">未安排 4</div></div>
+          <div style="background:#fff;border:1px solid #eadfc8;border-radius:8px;padding:4px"><div style="font-weight:700;font-size:9px;margin-bottom:3px">已完成 8</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">方案 B 续：看板 Tab</div>
+    <div class="mockup-body" style="font-size:11px;line-height:1.5">
+      <div style="display:flex;gap:2px;background:#eadfc8;padding:3px;border-radius:10px;margin-bottom:10px">
+        <div style="flex:1;text-align:center;padding:8px;font-weight:700;color:#6b7280">📌 今日</div>
+        <div style="flex:1;text-align:center;padding:8px;background:#fff;border-radius:8px;font-weight:700">📋 看板</div>
+        <div style="flex:1;text-align:center;padding:8px;font-weight:700;color:#6b7280">🎯 计划</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-weight:700;font-size:12px">筛选计划：</span>
+        <span style="background:#dcebff;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:700">全部</span>
+        <span style="padding:3px 8px;border-radius:10px;font-size:10px">数据库</span>
+        <span style="padding:3px 8px;border-radius:10px;font-size:10px">Python</span>
+        <span style="padding:3px 8px;border-radius:10px;font-size:10px">网络</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        <div style="background:#fff;border:1px solid #eadfc8;border-radius:10px;padding:6px"><div style="font-weight:700;font-size:10px;margin-bottom:4px">逾期/今日 6</div><div style="background:#ffeaea;padding:4px 6px;border-radius:4px;margin-bottom:3px;font-size:10px">□ 多表连接</div><div style="background:#fff8e6;padding:4px 6px;border-radius:4px;margin-bottom:3px;font-size:10px">□ 整理笔记</div><div style="background:#fff8e6;padding:4px 6px;border-radius:4px;font-size:10px">□ Matplotlib</div></div>
+        <div style="background:#fff;border:1px solid #eadfc8;border-radius:10px;padding:6px"><div style="font-weight:700;font-size:10px;margin-bottom:4px">即将到期 5</div><div style="background:#fff;padding:4px 6px;border-radius:4px;margin-bottom:3px;font-size:10px">□ 索引优化</div><div style="background:#fff;padding:4px 6px;border-radius:4px;font-size:10px">□ 事务ACID</div></div>
+        <div style="background:#fff;border:1px solid #eadfc8;border-radius:10px;padding:6px"><div style="font-weight:700;font-size:10px;margin-bottom:4px">未安排 4</div></div>
+        <div style="background:#fff;border:1px solid #eadfc8;border-radius:10px;padding:6px"><div style="font-weight:700;font-size:10px;margin-bottom:4px">已完成 8</div><div style="background:#e6f7ee;padding:4px 6px;border-radius:4px;margin-bottom:3px;font-size:10px">✓ 关系代数</div><div style="background:#e6f7ee;padding:4px 6px;border-radius:4px;font-size:10px">✓ SQL练习</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)" style="min-height:120px">
+    <div class="card-body">
+      <h3>方案 A — 折叠面板</h3>
+      <p>左侧可折叠计划列表，展开查看该计划的任务。始终需要滚动查看所有内容。</p>
+      <div class="pros-cons" style="margin-top:8px">
+        <div class="pros"><h4>Pros</h4><ul><li>计划-任务层级清晰</li><li>可折叠节省空间</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>同时只能看一个计划</li><li>仍可能需滚动</li></ul></div>
+      </div>
+    </div>
+  </div>
+  <div class="card" data-choice="b" onclick="toggleSelect(this)" style="min-height:120px">
+    <div class="card-body">
+      <h3>方案 B — Tab 分页（推荐）</h3>
+      <p>三个 Tab 分别服务"快速完成今日任务"、"全览看板"、"管理计划进度"三种场景。每页内容精简，无需滚动。</p>
+      <div class="pros-cons" style="margin-top:8px">
+        <div class="pros"><h4>Pros</h4><ul><li>按使用场景拆分，清晰直观</li><li>每页内容精简，一屏看全</li><li>今日Tab就是待办清单</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>需切换Tab</li><li>实现量稍多</li></ul></div>
+      </div>
+    </div>
+  </div>
+  <div class="card" data-choice="c" onclick="toggleSelect(this)" style="min-height:120px">
+    <div class="card-body">
+      <h3>方案 C — 左边栏</h3>
+      <p>左边栏快速切计划，主区域全宽四列看板。类似现在的结构但更紧凑。</p>
+      <div class="pros-cons" style="margin-top:8px">
+        <div class="pros"><h4>Pros</h4><ul><li>全局视野</li><li>空间利用率高</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>与当前类似</li><li>小屏左边栏太窄</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>

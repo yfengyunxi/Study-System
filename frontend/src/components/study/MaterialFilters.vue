@@ -10,6 +10,7 @@
       <el-option v-for="type in fileTypes" :key="type" :label="type.toUpperCase()" :value="type" />
     </el-select>
     <el-select :model-value="sort" placeholder="排序" @update:model-value="$emit('update:sort', $event)">
+      <el-option label="自定义排序" value="custom" />
       <el-option label="最新上传" value="created_desc" />
       <el-option label="标题 A-Z" value="title_asc" />
       <el-option label="状态优先" value="status" />
@@ -30,7 +31,7 @@ defineProps({
   fileType: { type: String, default: '' },
   sort: { type: String, default: 'created_desc' },
   viewMode: { type: String, default: 'cards' },
-  hasVisualAssets: { type: [Boolean, String, null], default: null },
+  hasVisualAssets: { type: [Boolean, String], default: null },
   fileTypes: { type: Array, default: () => [] }
 })
 defineEmits(['update:q', 'update:status', 'update:fileType', 'update:sort', 'update:viewMode', 'update:hasVisualAssets'])

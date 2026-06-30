@@ -1,8 +1,8 @@
-from datetime import datetime
 import json
 
 from services.rag_service import references_to_json
 from extensions import db
+from services.time_service import utc_now
 
 
 class ChatHistory(db.Model):
@@ -14,7 +14,7 @@ class ChatHistory(db.Model):
     question = db.Column(db.Text, nullable=False)
     answer = db.Column(db.Text, nullable=False)
     references_json = db.Column(db.Text, default="[]")
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
 
     def to_dict(self):
         try:
@@ -42,8 +42,8 @@ class Conversation(db.Model):
     default_scope_json = db.Column(db.Text, default='{"scope_type":"all"}', nullable=False)
     status = db.Column(db.String(20), default="active", nullable=False, index=True)
     legacy_history_id = db.Column(db.Integer, db.ForeignKey("chat_history.id"), nullable=True, unique=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow, nullable=True)
+    created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
+    updated_at = db.Column(db.DateTime, onupdate=utc_now, nullable=True)
     deleted_at = db.Column(db.DateTime, nullable=True)
 
     messages = db.relationship(
@@ -91,8 +91,8 @@ class Message(db.Model):
     retry_of_message_id = db.Column(db.Integer, db.ForeignKey("message.id"), nullable=True)
     error_code = db.Column(db.String(50), nullable=True)
     retryable = db.Column(db.Boolean, default=False, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow, nullable=True)
+    created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
+    updated_at = db.Column(db.DateTime, onupdate=utc_now, nullable=True)
 
     citations = db.relationship(
         "Citation",
@@ -155,7 +155,7 @@ class Citation(db.Model):
     score = db.Column(db.Float, nullable=True)
     source_state = db.Column(db.String(20), default="active", nullable=False)
     generation = db.Column(db.Integer, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
 
     def to_dict(self):
         score_display = None

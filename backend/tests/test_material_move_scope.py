@@ -131,8 +131,8 @@ def test_fallback_search_uses_live_sql_folder_after_move(app, make_user, make_fo
     db.session.commit()
 
     rag = RAGService()
-    old_refs = rag._fallback_search(user.id, "事实表", None, old_folder.id, 5)
-    new_refs = rag._fallback_search(user.id, "事实表", None, new_folder.id, 5)
+    old_refs = rag._fallback_search(user.id, "事实表", folder_id=old_folder.id, top_k=5)
+    new_refs = rag._fallback_search(user.id, "事实表", folder_id=new_folder.id, top_k=5)
 
     assert old_refs == []
     assert len(new_refs) == 1

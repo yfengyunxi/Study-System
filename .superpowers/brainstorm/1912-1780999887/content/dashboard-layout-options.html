@@ -1,0 +1,65 @@
+<h2>驾驶舱重整：减少杂乱，突出今天要做什么</h2>
+<p class="subtitle">你反馈驾驶舱信息太多太杂乱。下面是 3 个首页信息架构方向。请选择一个作为设计基准。</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup" style="height:390px; margin:0; overflow:hidden; background:#f7f1e8;">
+        <div class="mockup-header">A · 推荐：今日优先 + 计划在资料库上方</div>
+        <div class="mockup-body" style="padding:12px; height:340px; display:grid; grid-template-columns:1.25fr .75fr; gap:12px;">
+          <div style="display:flex; flex-direction:column; gap:10px; overflow:hidden;">
+            <div style="height:118px; border-radius:18px; background:white; border:1px solid #e8dfd2; padding:14px; box-shadow:0 12px 24px rgba(48,38,20,.08);">
+              <div style="font-size:12px; color:#6e7b8a; font-weight:800;">今天最重要</div>
+              <div style="font-size:22px; font-weight:900; margin:8px 0 10px;">完成 2 个学习任务</div>
+              <div style="display:flex; gap:8px;"><span style="height:30px; padding:0 12px; border-radius:12px; background:#3568ff; color:white; display:flex; align-items:center; font-size:12px; font-weight:900;">开始学习</span><span style="height:30px; padding:0 12px; border-radius:12px; background:#eef3ff; color:#3568ff; display:flex; align-items:center; font-size:12px; font-weight:900;">问 AI</span></div>
+            </div>
+            <div style="height:88px; border-radius:18px; background:white; border:1px solid #e8dfd2; padding:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><b>学习计划</b><span style="color:#3568ff; font-size:12px; font-weight:900;">查看全部</span></div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;"><div style="height:38px; border-radius:12px; background:#f4f7ff;"></div><div style="height:38px; border-radius:12px; background:#f4f7ff;"></div></div>
+            </div>
+            <div style="height:88px; border-radius:18px; background:white; border:1px solid #e8dfd2; padding:12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><b>资料库</b><span style="color:#3568ff; font-size:12px; font-weight:900;">整理资料</span></div>
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;"><div style="height:36px; border-radius:12px; background:#fff4df;"></div><div style="height:36px; border-radius:12px; background:#fff4df;"></div><div style="height:36px; border-radius:12px; background:#fff4df;"></div></div>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:10px; overflow:hidden;">
+            <div style="height:90px; border-radius:18px; background:#10233f; color:white; padding:12px;"><div style="font-size:12px; opacity:.75;">今日学习时长</div><div style="font-size:28px; font-weight:900; margin-top:8px;">1h 25m</div></div>
+            <div style="height:90px; border-radius:18px; background:white; border:1px solid #e8dfd2; padding:12px;"><b>AI 连续学习</b><div style="height:38px; margin-top:10px; border-radius:12px; background:#eef3ff;"></div></div>
+            <div style="height:90px; border-radius:18px; background:white; border:1px solid #e8dfd2; padding:12px;"><b>健康提醒</b><div style="height:38px; margin-top:10px; border-radius:12px; background:#eaf8f0;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>A. 推荐：今日优先</h3><p>首页只展示“今天要做什么”、学习计划、资料库和少量关键指标；计划明确放在资料库上面，杂项折叠到二级区域。</p></div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup" style="height:390px; margin:0; overflow:hidden; background:#f7f1e8;">
+        <div class="mockup-header">B · Bento 数据概览</div>
+        <div class="mockup-body" style="padding:12px; height:340px; display:grid; grid-template-columns:repeat(4,1fr); grid-template-rows:repeat(3,1fr); gap:10px;">
+          <div style="grid-column:span 2; grid-row:span 2; border-radius:18px; background:white; border:1px solid #e8dfd2;"></div>
+          <div style="border-radius:18px; background:#10233f;"></div><div style="border-radius:18px; background:#3568ff;"></div>
+          <div style="border-radius:18px; background:white; border:1px solid #e8dfd2;"></div><div style="border-radius:18px; background:white; border:1px solid #e8dfd2;"></div>
+          <div style="grid-column:span 2; border-radius:18px; background:white; border:1px solid #e8dfd2;"></div><div style="grid-column:span 2; border-radius:18px; background:white; border:1px solid #e8dfd2;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>B. Bento 数据概览</h3><p>更像漂亮仪表盘，卡片丰富但仍然会显得信息密度高；适合展示数据，不一定适合每天打开就开始学习。</p></div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup" style="height:390px; margin:0; overflow:hidden; background:#f7f1e8;">
+        <div class="mockup-header">C · 极简任务首页</div>
+        <div class="mockup-body" style="padding:12px; height:340px; display:flex; flex-direction:column; gap:12px;">
+          <div style="height:150px; border-radius:22px; background:#3568ff; color:white; padding:20px;"><div style="font-size:12px; opacity:.8;">下一步</div><div style="font-size:26px; font-weight:900; margin-top:12px;">继续今天的学习计划</div></div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; flex:1;"><div style="border-radius:20px; background:white; border:1px solid #e8dfd2;"></div><div style="border-radius:20px; background:white; border:1px solid #e8dfd2;"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>C. 极简任务首页</h3><p>最干净，只保留一个主行动和少数入口；但你可能会觉得资料、计划、AI 的状态不够一目了然。</p></div>
+  </div>
+</div>
+
+<p class="subtitle">我的建议是 A：它直接解决“太多太杂乱”和“计划放在仪表盘下面、资料库上面”的需求，同时保留学习时长入口。</p>

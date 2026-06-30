@@ -138,7 +138,6 @@
 
 <script setup>
 import { Plus, Refresh } from '@element-plus/icons-vue'
-import * as echarts from 'echarts'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -149,6 +148,7 @@ import MetricCard from '../components/study/MetricCard.vue'
 import PomodoroTimer from '../components/study/PomodoroTimer.vue'
 import StudyDurationChart from '../components/study/StudyDurationChart.vue'
 import { usePomodoroStore } from '../stores/pomodoro'
+import { echarts } from '../utils/chart'
 
 const pomodoroStore = usePomodoroStore()
 

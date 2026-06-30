@@ -1,0 +1,51 @@
+<h2>驾驶舱融合方案：学习清单 + 可视化图表</h2>
+<p class="subtitle">理解了：你不是想去掉图表，而是要“清单能指导今天学习，图表能看出学习趋势”，同时页面不杂乱。</p>
+
+<div class="mockup">
+  <div class="mockup-header">推荐融合版：上方行动区，下方可视化区</div>
+  <div class="mockup-body" style="background:#f7f1e8; padding:16px;">
+    <div style="display:grid; grid-template-columns:1.15fr .85fr; grid-template-rows:150px 210px 160px; gap:12px; height:560px;">
+      <div style="border-radius:22px; background:white; border:1px solid #e8dfd2; padding:18px; box-shadow:0 14px 28px rgba(48,38,20,.08); display:flex; flex-direction:column;">
+        <div style="font-size:12px; color:#6e7b8a; font-weight:900;">今日学习清单</div>
+        <div style="font-size:22px; font-weight:950; margin:8px 0;">先完成 2 个重点任务</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; font-size:12px; color:#6e7b8a;"><span>数据仓库章节复习</span><span>·</span><span>图表概念问答</span></div>
+        <div style="margin-top:auto; display:flex; gap:8px;"><span style="height:34px; padding:0 14px; border-radius:14px; background:#3568ff; color:white; display:flex; align-items:center; font-size:13px; font-weight:900;">开始学习</span><span style="height:34px; padding:0 14px; border-radius:14px; background:#eef3ff; color:#3568ff; display:flex; align-items:center; font-size:13px; font-weight:900;">问 AI</span></div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div style="border-radius:22px; background:#10233f; color:white; padding:16px; display:flex; flex-direction:column; justify-content:space-between;"><div style="font-size:12px; opacity:.75; font-weight:900;">今日学习时长</div><div style="font-size:28px; font-weight:950;">1h25m</div></div>
+        <div style="border-radius:22px; background:#3568ff; color:white; padding:16px; display:flex; flex-direction:column; justify-content:space-between;"><div style="font-size:12px; opacity:.85; font-weight:900;">完成率</div><div style="font-size:28px; font-weight:950;">68%</div></div>
+      </div>
+
+      <div style="border-radius:22px; background:white; border:1px solid #e8dfd2; padding:16px; overflow:hidden;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><b>学习趋势</b><span style="font-size:12px; color:#6e7b8a;">近 7 天</span></div>
+        <div style="height:142px; border-radius:16px; background:linear-gradient(180deg,#f8fbff,#eef3ff); position:relative; overflow:hidden;">
+          <svg width="100%" height="142" viewBox="0 0 420 142" preserveAspectRatio="none">
+            <polyline points="10,115 70,95 130,102 190,66 250,78 310,42 390,32" fill="none" stroke="#3568ff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+            <polygon points="10,115 70,95 130,102 190,66 250,78 310,42 390,32 390,142 10,142" fill="rgba(53,104,255,.14)"/>
+          </svg>
+        </div>
+      </div>
+      <div style="border-radius:22px; background:white; border:1px solid #e8dfd2; padding:16px; overflow:hidden;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><b>资料类型分布</b><span style="font-size:12px; color:#6e7b8a;">PDF / 图片 / 文档</span></div>
+        <div style="display:flex; height:142px; align-items:center; gap:14px;">
+          <div style="width:118px; height:118px; border-radius:50%; background:conic-gradient(#3568ff 0 48%, #55c6a9 48% 75%, #f2b84b 75% 90%, #ef7f6d 90% 100%); display:flex; align-items:center; justify-content:center;"><div style="width:62px; height:62px; border-radius:50%; background:white;"></div></div>
+          <div style="flex:1; display:flex; flex-direction:column; gap:8px; font-size:12px;"><span><b style="color:#3568ff;">●</b> PDF 48%</span><span><b style="color:#55c6a9;">●</b> 图片 27%</span><span><b style="color:#f2b84b;">●</b> 文档 15%</span><span><b style="color:#ef7f6d;">●</b> 其他 10%</span></div>
+        </div>
+      </div>
+
+      <div style="border-radius:22px; background:white; border:1px solid #e8dfd2; padding:16px; overflow:hidden;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><b>学习计划</b><span style="font-size:12px; color:#3568ff; font-weight:900;">查看全部</span></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"><div style="height:82px; border-radius:16px; background:#f4f7ff; padding:10px; font-size:12px; color:#3568ff; font-weight:900;">数据仓库计划<br/><span style="color:#6e7b8a; font-weight:700;">68% · 2 个任务</span></div><div style="height:82px; border-radius:16px; background:#f4f7ff;"></div></div>
+      </div>
+      <div style="border-radius:22px; background:white; border:1px solid #e8dfd2; padding:16px; overflow:hidden;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><b>资料库</b><span style="font-size:12px; color:#3568ff; font-weight:900;">整理资料</span></div>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;"><div style="height:74px; border-radius:16px; background:#fff4df;"></div><div style="height:74px; border-radius:16px; background:#fff4df;"></div><div style="height:74px; border-radius:16px; background:#fff4df;"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros"><h4>这版保留</h4><ul><li>学习清单：今天做什么很明确</li><li>可视化图表：学习趋势、资料分布等</li><li>学习计划在资料库上方</li><li>模块少而有层级，不再满屏杂项</li></ul></div>
+  <div class="cons"><h4>设计约束</h4><ul><li>图表只放 2-3 个最有用的，避免堆满</li><li>次要信息折叠到“更多洞察”或二级页面</li><li>番茄钟/时长统计先预留展示位，完整计时系统可后续扩展</li></ul></div>
+</div>

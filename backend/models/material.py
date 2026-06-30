@@ -1,7 +1,7 @@
-from datetime import datetime
 import json
 
 from extensions import db
+from services.time_service import utc_now
 
 
 class Material(db.Model):
@@ -22,8 +22,8 @@ class Material(db.Model):
     active_index_generation = db.Column(db.Integer, default=0, nullable=False)
     building_index_generation = db.Column(db.Integer, nullable=True)
     error_message = db.Column(db.Text, default="")
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow, nullable=True)
+    created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
+    updated_at = db.Column(db.DateTime, onupdate=utc_now, nullable=True)
 
     chunks = db.relationship(
         "MaterialChunk",
@@ -84,7 +84,7 @@ class MaterialFolder(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
     name = db.Column(db.String(120), nullable=False)
     description = db.Column(db.String(500), default="")
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
 
     materials = db.relationship("Material", backref="folder", lazy=True)
 
@@ -116,7 +116,7 @@ class MaterialChunk(db.Model):
     chunk_index = db.Column(db.Integer, nullable=False)
     content = db.Column(db.Text, nullable=False)
     chroma_id = db.Column(db.String(120), unique=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
 
     def to_dict(self):
         return {
@@ -144,7 +144,7 @@ class MaterialVisualAsset(db.Model):
     chroma_id = db.Column(db.String(160), unique=True, nullable=False)
     status = db.Column(db.String(20), default="processing", nullable=False)
     error_message = db.Column(db.Text, default="")
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
 
     def to_dict(self):
         return {
@@ -180,8 +180,8 @@ class ReindexJob(db.Model):
     request_id = db.Column(db.String(120), nullable=True, index=True)
     started_at = db.Column(db.DateTime, nullable=True)
     finished_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow, nullable=True)
+    created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
+    updated_at = db.Column(db.DateTime, onupdate=utc_now, nullable=True)
 
     material = db.relationship("Material", backref=db.backref("reindex_jobs", lazy=True, order_by="ReindexJob.created_at.desc()"))
 

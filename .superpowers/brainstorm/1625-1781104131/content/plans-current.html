@@ -1,0 +1,89 @@
+<h2>原始设计 vs 当前设计</h2>
+<p class="subtitle">对比一下"不直观"的版本和你的三个新选择</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">❌ 前两轮的旧设计（你刚改的）</div>
+    <div class="mockup-body" style="font-size:11px;line-height:1.5">
+      <div style="background:#dcebff;padding:6px 10px;border-radius:8px;margin-bottom:8px;display:flex;gap:12px;justify-content:space-between">
+        <span>📋 4</span><span>📝 18</span><span>🔔 5</span><span>✅ 52%</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:8px;overflow-x:auto;padding-bottom:4px">
+        <span style="background:#dcebff;border:2px solid #2f80ed;padding:4px 10px;border-radius:12px;font-weight:700;font-size:10px;white-space:nowrap">全部计划</span>
+        <span style="background:#fff;border:1px solid #eadfc8;padding:4px 10px;border-radius:12px;font-size:10px;white-space:nowrap">数据库<br>3/7·43%</span>
+        <span style="background:#fff;border:1px solid #eadfc8;padding:4px 10px;border-radius:12px;font-size:10px;white-space:nowrap">Python<br>1/5·20%</span>
+        <span style="background:#fff;border:1px solid #eadfc8;padding:4px 10px;border-radius:12px;font-size:10px;white-space:nowrap">网络<br>⚠2</span>
+        <span style="background:#fff;border:1px solid #eadfc8;padding:4px 10px;border-radius:12px;font-size:10px;white-space:nowrap">操作系统<br>未</span>
+        <span style="background:#fff;border:1px solid #eadfc8;padding:4px 10px;border-radius:12px;font-size:10px;white-space:nowrap">线代<br>✓</span>
+        <span style="padding:4px 10px;font-size:10px">→ 超长滑动 →</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-weight:700;font-size:10px">任务看板</span>
+        <span style="font-size:10px;color:#6b7280">全部 ▾</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px">
+        <div style="background:#fff;border:1px solid #eadfc8;border-radius:8px;padding:4px"><div style="font-weight:700;font-size:9px;margin-bottom:2px">逾期/今日 6</div><div style="padding:3px 4px;font-size:8px;border-radius:3px;background:#ffeaea;margin-bottom:1px">多表连接</div><div style="padding:3px 4px;font-size:8px;border-radius:3px;background:#fff8e6">TCP握手</div></div>
+        <div style="background:#fff;border:1px solid #eadfc8;border-radius:8px;padding:4px"><div style="font-weight:700;font-size:9px;margin-bottom:2px">即将到期 5</div></div>
+        <div style="background:#fff;border:1px solid #eadfc8;border-radius:8px;padding:4px"><div style="font-weight:700;font-size:9px;margin-bottom:2px">未安排 4</div></div>
+        <div style="background:#fff;border:1px solid #eadfc8;border-radius:8px;padding:4px"><div style="font-weight:700;font-size:9px;margin-bottom:2px">已完成 8</div></div>
+      </div>
+      <div style="margin-top:8px;padding:8px;background:#ffeaea;border-radius:8px;font-size:10px;color:#9b2727">
+        ⚠ 问题：计划横条→超长滚动 / 四列看板太挤 / 计划和任务关系不清
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">✅ 第一版本（本轮最初始）</div>
+    <div class="mockup-body" style="font-size:11px;line-height:1.5">
+      <div style="background:#dcebff;padding:6px 10px;border-radius:8px;margin-bottom:8px;display:flex;gap:12px;justify-content:space-between">
+        <span>📋 4</span><span>📝 18</span><span>🔔 5</span><span>✅ 52%</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1.4fr 0.85fr;gap:10px">
+        <div style="background:#fff;border:1px solid #eadfc8;border-radius:10px;padding:8px">
+          <div style="font-weight:700;font-size:10px;margin-bottom:4px">学习计划 <span style="color:#6b7280">显示全部</span></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px">
+            <div style="padding:8px;border:1px solid #2f80ed;border-radius:10px;background:#dcebff;font-size:9px">
+              <div style="font-weight:700">数据库系统概论</div>
+              <div style="color:#6b7280">未设-未设</div>
+              <div style="height:4px;background:#eadfc8;border-radius:2px;margin:4px 0"><div style="width:43%;height:100%;background:#2f80ed;border-radius:2px"></div></div>
+              <div style="display:flex;justify-content:space-between"><span>3/7</span><span style="color:#2f80ed">查看 添加 删除</span></div>
+            </div>
+            <div style="padding:8px;border:1px solid #eadfc8;border-radius:10px;background:#fff;font-size:9px">
+              <div style="font-weight:700">Python数据分析</div>
+              <div style="color:#6b7280">06/07-06/20</div>
+              <div style="height:4px;background:#eadfc8;border-radius:2px;margin:4px 0"><div style="width:20%;height:100%;background:#2f80ed;border-radius:2px"></div></div>
+              <div style="display:flex;justify-content:space-between"><span>1/5</span><span style="color:#6b7280">...</span></div>
+            </div>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid #eadfc8;border-radius:10px;padding:6px">
+          <div style="font-weight:700;font-size:10px;margin-bottom:4px">任务看板 <span style="font-size:9px;color:#6b7280">全部 ▾</span></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+            <div style="border-radius:8px;padding:4px;font-size:8px"><div style="font-weight:700;margin-bottom:2px">今日 6</div><div style="padding:3px 4px;background:#fff8e6;border-radius:3px;margin-bottom:1px">多表连接</div></div>
+            <div style="border-radius:8px;padding:4px;font-size:8px"><div style="font-weight:700;margin-bottom:2px">即将到期 5</div></div>
+            <div style="border-radius:8px;padding:4px;font-size:8px"><div style="font-weight:700;margin-bottom:2px">未安排 4</div></div>
+            <div style="border-radius:8px;padding:4px;font-size:8px"><div style="font-weight:700;margin-bottom:2px">已完成 8</div></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:8px;padding:8px;background:#ffeaea;border-radius:8px;font-size:10px;color:#9b2727">
+        ⚠ 问题：左右两栏都挤 / 计划卡片太大占空间 / 任务列太窄看不清
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:20px">
+  <h3>你现在看到的是这个（第二轮改动）→</h3>
+  <p class="subtitle">已经把旧版去掉，换成了计划横条 + 全宽看板，但横条计划多了要滑动，整体还需滚动页面</p>
+</div>
+
+<div class="cards">
+  <div class="card" data-choice="old" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>方向确认</h3>
+      <p>上面两个都不好。三个新方案（A/B/C）中选一个，或者告诉我一个新想法。</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,65 @@
+<h2>驾驶舱 B 方案补充：Bento 数据概览（清晰版）</h2>
+<p class="subtitle">你说 B 没展示清楚，所以我把它单独放大：它不是简单堆数据，而是用不同大小的卡片做“学习状态总览”。</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">B 方案：Bento 首页结构</div>
+    <div class="mockup-body" style="background:#f7f1e8; padding:16px;">
+      <div style="display:grid; grid-template-columns:1.25fr .75fr .75fr; grid-template-rows:130px 120px 120px; gap:12px; height:420px;">
+        <div style="grid-row:span 2; border-radius:22px; background:white; border:1px solid #e8dfd2; padding:18px; box-shadow:0 14px 28px rgba(48,38,20,.08); display:flex; flex-direction:column;">
+          <div style="font-size:12px; color:#6e7b8a; font-weight:900;">今日学习焦点</div>
+          <div style="font-size:24px; font-weight:950; margin:10px 0 8px; line-height:1.2;">先完成数据仓库章节复习</div>
+          <div style="font-size:13px; color:#6e7b8a; line-height:1.5;">来自学习计划 · 截止今天 · 预计 35 分钟</div>
+          <div style="margin-top:auto; display:flex; gap:8px;"><span style="height:36px; padding:0 14px; border-radius:14px; background:#3568ff; color:white; display:flex; align-items:center; font-size:13px; font-weight:900;">开始</span><span style="height:36px; padding:0 14px; border-radius:14px; background:#eef3ff; color:#3568ff; display:flex; align-items:center; font-size:13px; font-weight:900;">问 AI</span></div>
+        </div>
+        <div style="border-radius:22px; background:#10233f; color:white; padding:16px; display:flex; flex-direction:column; justify-content:space-between;">
+          <div style="font-size:12px; opacity:.75; font-weight:900;">今日学习时长</div><div style="font-size:30px; font-weight:950;">1h25m</div>
+        </div>
+        <div style="border-radius:22px; background:#3568ff; color:white; padding:16px; display:flex; flex-direction:column; justify-content:space-between;">
+          <div style="font-size:12px; opacity:.85; font-weight:900;">待完成任务</div><div style="font-size:30px; font-weight:950;">2</div>
+        </div>
+        <div style="border-radius:22px; background:white; border:1px solid #e8dfd2; padding:16px;">
+          <div style="font-size:13px; font-weight:950; margin-bottom:10px;">学习计划</div>
+          <div style="height:42px; border-radius:14px; background:#f4f7ff; margin-bottom:8px; display:flex; align-items:center; padding:0 10px; font-size:12px; color:#3568ff; font-weight:900;">数据仓库计划 · 68%</div>
+          <div style="height:28px; border-radius:10px; background:#f7f1e8;"></div>
+        </div>
+        <div style="border-radius:22px; background:white; border:1px solid #e8dfd2; padding:16px;">
+          <div style="font-size:13px; font-weight:950; margin-bottom:10px;">资料库</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;"><div style="height:40px; border-radius:14px; background:#fff4df;"></div><div style="height:40px; border-radius:14px; background:#fff4df;"></div></div>
+        </div>
+        <div style="border-radius:22px; background:white; border:1px solid #e8dfd2; padding:16px;">
+          <div style="font-size:13px; font-weight:950; margin-bottom:10px;">AI 会话</div>
+          <div style="height:42px; border-radius:14px; background:#eef3ff; margin-bottom:8px;"></div>
+          <div style="height:28px; border-radius:10px; background:#f7f1e8;"></div>
+        </div>
+        <div style="border-radius:22px; background:white; border:1px solid #e8dfd2; padding:16px;">
+          <div style="font-size:13px; font-weight:950; margin-bottom:10px;">弱点提醒</div>
+          <div style="height:42px; border-radius:14px; background:#eaf8f0;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">和 A 的区别</div>
+    <div class="mockup-body" style="padding:18px;">
+      <div class="section">
+        <h3>视觉感受</h3>
+        <p>A 更像“今天的学习清单”，B 更像“精致的学习控制台”。B 的卡片大小有节奏，看起来更有设计感。</p>
+      </div>
+      <div class="section">
+        <h3>信息密度</h3>
+        <p>B 仍然会展示较多模块，但通过大小和色块区分优先级：今日焦点最大，学习时长/任务数最醒目，计划在资料库之前。</p>
+      </div>
+      <div class="section">
+        <h3>适合场景</h3>
+        <p>如果你希望首页“好看、有驾驶舱感、能看到多个状态”，选 B。 如果你希望“少即是多、打开就知道做什么”，选 A。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>回到 A：今日优先</h3><p>更清爽，主行动更明确，杂项更少。</p></div></div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>选择 B：Bento 数据概览</h3><p>更有驾驶舱设计感，信息更多但用卡片层级管理。</p></div></div>
+</div>

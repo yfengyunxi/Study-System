@@ -1,4 +1,3 @@
-from datetime import datetime
 import json
 
 from flask import Blueprint, current_app, jsonify, request
@@ -11,6 +10,7 @@ from services.chat_history_adapter import migrate_chat_history_for_user
 from services.error_service import build_error, error_response
 from services.rag_service import RAGService, references_to_json
 from services.scope_service import InvalidScopeError, validate_scope_for_user
+from services.time_service import utc_now
 
 
 chat_bp = Blueprint("chat", __name__)
@@ -70,7 +70,7 @@ def delete_conversation(conversation_id):
     if not conversation:
         return error_response("NOT_FOUND", "会话不存在", status=404)
     conversation.status = "deleted"
-    conversation.deleted_at = datetime.utcnow()
+    conversation.deleted_at = utc_now()
     Message.query.filter_by(conversation_id=conversation.id, status="generating").update(
         {"status": "cancelled", "retryable": False}
     )
@@ -169,7 +169,10 @@ def chat():
             scope["material_id"] = material_id
         if folder_id:
             scope["folder_id"] = folder_id
-        validate_scope_for_user(user_id, scope)
+        scope = validate_scope_for_user(user_id, scope)
+        scope_type = scope["scope_type"]
+        material_id = scope.get("material_id")
+        folder_id = scope.get("folder_id")
         if scope_type == "general":
             answer = AIService().answer(question, [], conversation=_clean_conversation(conversation))
             references = []
@@ -299,7 +302,7 @@ def _complete_assistant(conversation, user_message, assistant, content, scope, r
         assistant.status = "succeeded"
         assistant.retryable = False
         _save_citations(assistant, references)
-        conversation.updated_at = datetime.utcnow()
+        conversation.updated_at = utc_now()
         db.session.commit()
         payload = {"conversation_id": conversation.id, "assistant_message": assistant.to_dict(include_citations=True)}
         if user_message:

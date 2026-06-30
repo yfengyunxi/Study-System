@@ -2,7 +2,7 @@
 Fully idempotent — safe to run multiple times."""
 import sys
 import random
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 from app import app
 from extensions import db
@@ -11,9 +11,10 @@ from models.focus import FocusSession
 from models.material import Material, MaterialFolder
 from models.plan import StudyPlan, StudyTask
 from models.user import User
+from services.time_service import utc_now
 
 today = date.today()
-now = datetime.utcnow()
+now = utc_now()
 
 # Track how many new items were added this run
 stats = {"plans": 0, "tasks": 0, "folders": 0, "materials": 0, "chats": 0, "convs": 0, "fs": 0, "fs_minutes": 0}
@@ -228,7 +229,7 @@ def enrich(user_id):
             file_path=f"uploads/{user_id}/{m_data[1]}",
             file_type=m_data[2], status=m_data[4],
             summary=m_data[5], keywords=m_data[6],
-            index_state="indexed" if m_data[4] == "ready" else ("failed" if m_data[4] == "failed" else "not_indexed"),
+            index_state="ready" if m_data[4] == "ready" else ("failed" if m_data[4] == "failed" else "not_indexed"),
             created_at=now - timedelta(days=random.randint(1, 20)),
         )
         if m_data[4] == "failed":
@@ -268,19 +269,19 @@ def enrich(user_id):
     if "数据库索引优化讨论" not in existing_conv_titles:
         conv1 = Conversation(
             user_id=user_id, title="数据库索引优化讨论",
-            default_scope_json='{"scope_type":"material","material_id":null}',
+            default_scope_json='{"scope_type":"all"}',
             status="active",
             created_at=now - timedelta(days=2), updated_at=now - timedelta(hours=1),
         )
         db.session.add(conv1)
         db.session.flush()
         for role, content, msg_status, created in [
-            ("user", "如何分析一条 SQL 语句的执行计划？", "completed", timedelta(days=2)),
-            ("assistant", "使用 EXPLAIN 或 EXPLAIN ANALYZE 关键字可以查看执行计划。关注 type（访问类型：ALL<index<range<ref<const）、key（使用的索引）、rows（扫描行数）、Extra（Using filesort/Using temporary 需要优化）。", "completed", timedelta(days=2)),
-            ("user", "如果 type 是 ALL 应该怎么优化？", "completed", timedelta(hours=4)),
-            ("assistant", "type=ALL 表示全表扫描，优化方法：1) 为 WHERE/JOIN/ORDER BY 列创建索引；2) 使用覆盖索引避免回表；3) 改写查询（如用 INNER JOIN 替代子查询）；4) 考虑分区表减小扫描范围。先用 EXPLAIN 确认索引是否被用到。", "completed", timedelta(hours=4)),
-            ("user", "覆盖索引是什么？", "completed", timedelta(hours=1)),
-            ("assistant", "覆盖索引（Covering Index）是指查询所需的所有列都在索引中，不需要回表查聚簇索引。例如 SELECT a,b FROM t WHERE a=1，如果 (a,b) 上有联合索引，就是覆盖索引。EXPLAIN 中 Extra 列会显示 Using index。", "completed", timedelta(hours=1)),
+            ("user", "如何分析一条 SQL 语句的执行计划？", "succeeded", timedelta(days=2)),
+            ("assistant", "使用 EXPLAIN 或 EXPLAIN ANALYZE 关键字可以查看执行计划。关注 type（访问类型：ALL<index<range<ref<const）、key（使用的索引）、rows（扫描行数）、Extra（Using filesort/Using temporary 需要优化）。", "succeeded", timedelta(days=2)),
+            ("user", "如果 type 是 ALL 应该怎么优化？", "succeeded", timedelta(hours=4)),
+            ("assistant", "type=ALL 表示全表扫描，优化方法：1) 为 WHERE/JOIN/ORDER BY 列创建索引；2) 使用覆盖索引避免回表；3) 改写查询（如用 INNER JOIN 替代子查询）；4) 考虑分区表减小扫描范围。先用 EXPLAIN 确认索引是否被用到。", "succeeded", timedelta(hours=4)),
+            ("user", "覆盖索引是什么？", "succeeded", timedelta(hours=1)),
+            ("assistant", "覆盖索引（Covering Index）是指查询所需的所有列都在索引中，不需要回表查聚簇索引。例如 SELECT a,b FROM t WHERE a=1，如果 (a,b) 上有联合索引，就是覆盖索引。EXPLAIN 中 Extra 列会显示 Using index。", "succeeded", timedelta(hours=1)),
         ]:
             db.session.add(Message(conversation_id=conv1.id, user_id=user_id,
                                    role=role, content=content, status=msg_status,
@@ -297,10 +298,10 @@ def enrich(user_id):
         db.session.add(conv2)
         db.session.flush()
         for role, content, msg_status, created in [
-            ("user", "Pandas 读取 CSV 文件乱码怎么办？", "completed", timedelta(days=5)),
-            ("assistant", "使用 encoding 参数指定编码：pd.read_csv('file.csv', encoding='gbk') 或 encoding='utf-8'。如果还乱码，先 detect 编码：用 chardet 库自动检测文件编码。", "completed", timedelta(days=5)),
-            ("user", "如何合并两个 DataFrame？", "completed", timedelta(days=5)),
-            ("assistant", "按需求选择：pd.concat([df1, df2]) 纵向拼接（按行）；pd.merge(df1, df2, on='key') 横向关联（类似 SQL JOIN）；df1.join(df2) 按索引关联。merge 支持 left/right/inner/outer 四种连接方式。", "completed", timedelta(days=5)),
+            ("user", "Pandas 读取 CSV 文件乱码怎么办？", "succeeded", timedelta(days=5)),
+            ("assistant", "使用 encoding 参数指定编码：pd.read_csv('file.csv', encoding='gbk') 或 encoding='utf-8'。如果还乱码，先 detect 编码：用 chardet 库自动检测文件编码。", "succeeded", timedelta(days=5)),
+            ("user", "如何合并两个 DataFrame？", "succeeded", timedelta(days=5)),
+            ("assistant", "按需求选择：pd.concat([df1, df2]) 纵向拼接（按行）；pd.merge(df1, df2, on='key') 横向关联（类似 SQL JOIN）；df1.join(df2) 按索引关联。merge 支持 left/right/inner/outer 四种连接方式。", "succeeded", timedelta(days=5)),
         ]:
             db.session.add(Message(conversation_id=conv2.id, user_id=user_id,
                                    role=role, content=content, status=msg_status,

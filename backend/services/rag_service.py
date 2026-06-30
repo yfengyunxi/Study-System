@@ -55,7 +55,8 @@ class RAGService:
         generation = generation or (material.active_index_generation or 0) + 1
         self.delete_material_generation_vectors(material.user_id, material.id, generation)
         MaterialChunk.query.filter_by(material_id=material.id).delete()
-        db.session.flush()
+        db.session.commit()
+        db.session.refresh(material)
         self.index_material(material, chunks, generation=generation)
 
     def index_visual_assets(self, material, asset_payloads, reindex=False, generation=None):
@@ -135,19 +136,15 @@ class RAGService:
         )
         return True
 
-    def search(self, user_id, question, material_id=None, folder_id=None, top_k=None):
+    def search(self, user_id, question, material_id=None, folder_id=None, uncategorized=False, top_k=None):
         top_k = top_k or current_app.config["RAG_TOP_K"]
-        where = {"user_id": user_id}
-        if material_id:
-            where = {"$and": [{"user_id": user_id}, {"material_id": material_id}]}
-        elif folder_id:
-            where = {"$and": [{"user_id": user_id}, {"folder_id": folder_id}]}
+        where = self._scope_where(user_id, material_id=material_id, folder_id=folder_id, uncategorized=uncategorized)
 
         embedding = self.ai.embed(question)
         try:
             result = self.vector_store.query(embedding, top_k, where)
         except Exception:
-            return self._fallback_search(user_id, question, material_id, folder_id, top_k)
+            return self._fallback_search(user_id, question, material_id, folder_id, uncategorized, top_k)
 
         references = []
         documents = result.get("documents", [[]])[0]
@@ -160,6 +157,8 @@ class RAGService:
             if material_id and material.id != material_id:
                 continue
             if folder_id and material.folder_id != folder_id:
+                continue
+            if uncategorized and material.folder_id is not None:
                 continue
             references.append(
                 {
@@ -176,16 +175,12 @@ class RAGService:
             )
         return references
 
-    def search_visual(self, user_id, question, material_id=None, folder_id=None, top_k=None):
+    def search_visual(self, user_id, question, material_id=None, folder_id=None, uncategorized=False, top_k=None):
         if not self.ai.multimodal_enabled:
             return []
 
         top_k = top_k or current_app.config["MULTIMODAL_TOP_K"]
-        where = {"user_id": user_id}
-        if material_id:
-            where = {"$and": [{"user_id": user_id}, {"material_id": material_id}]}
-        elif folder_id:
-            where = {"$and": [{"user_id": user_id}, {"folder_id": folder_id}]}
+        where = self._scope_where(user_id, material_id=material_id, folder_id=folder_id, uncategorized=uncategorized)
 
         embedding = self.ai.embed_multimodal_text(question)
         try:
@@ -210,6 +205,8 @@ class RAGService:
             if material_id and asset.material_id != material_id:
                 continue
             if folder_id and asset.folder_id != folder_id:
+                continue
+            if uncategorized and asset.folder_id is not None:
                 continue
             references.append(
                 {
@@ -258,8 +255,9 @@ class RAGService:
 
         scoped_material_id = material_id if scope_type == "material" else None
         scoped_folder_id = folder_id if scope_type == "folder" else None
-        text_references = self.search(user_id, question, scoped_material_id, scoped_folder_id)
-        visual_references = self.search_visual(user_id, question, scoped_material_id, scoped_folder_id)
+        scoped_uncategorized = scope_type == "uncategorized"
+        text_references = self.search(user_id, question, scoped_material_id, scoped_folder_id, uncategorized=scoped_uncategorized)
+        visual_references = self.search_visual(user_id, question, scoped_material_id, scoped_folder_id, uncategorized=scoped_uncategorized)
         references = text_references + visual_references
         answer = self.ai.answer(question, references, conversation=conversation)
         return answer, references
@@ -294,10 +292,23 @@ class RAGService:
         self.delete_material_visual_vectors(material.user_id, material.id)
         delete_visual_asset_files(material)
 
-    def _fallback_search(self, user_id, question, material_id, folder_id, top_k):
+    def _scope_where(self, user_id, material_id=None, folder_id=None, uncategorized=False):
+        filters = [{"user_id": user_id}]
+        if material_id:
+            filters.append({"material_id": material_id})
+        elif uncategorized:
+            filters.append({"folder_id": 0})
+        elif folder_id:
+            filters.append({"folder_id": folder_id})
+        return filters[0] if len(filters) == 1 else {"$and": filters}
+
+    def _fallback_search(self, user_id, question, material_id=None, folder_id=None, uncategorized=False, top_k=None):
+        top_k = top_k or current_app.config["RAG_TOP_K"]
         query = MaterialChunk.query.join(Material).filter(Material.user_id == user_id)
         if material_id:
             query = query.filter(MaterialChunk.material_id == material_id)
+        elif uncategorized:
+            query = query.filter(Material.folder_id.is_(None))
         elif folder_id:
             query = query.filter(Material.folder_id == folder_id)
         chunks = query.limit(200).all()

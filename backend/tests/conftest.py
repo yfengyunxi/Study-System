@@ -24,6 +24,7 @@ from models.focus import FocusSession
 from models.material import Material, MaterialChunk, MaterialFolder, MaterialVisualAsset
 from models.plan import StudyPlan, StudyTask
 from models.user import User
+from services.time_service import utc_now as current_utc_now
 
 
 @pytest.fixture()
@@ -277,4 +278,4 @@ def days_from_today(offset):
 
 
 def utc_now():
-    return datetime.utcnow()
+    return current_utc_now()

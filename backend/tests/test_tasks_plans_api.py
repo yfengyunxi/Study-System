@@ -1,4 +1,6 @@
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
+
+from services.time_service import utc_now
 
 from extensions import db
 
@@ -6,7 +8,7 @@ from extensions import db
 def test_plan_to_dict_includes_computed_fields(app, make_user, make_plan, make_task):
     user = make_user()
     plan = make_plan(user, title="数据库复习")
-    make_task(user, plan=plan, title="已完成", status="done", completed_at=datetime.utcnow())
+    make_task(user, plan=plan, title="已完成", status="done", completed_at=utc_now())
     make_task(user, plan=plan, title="待完成", due_date=date.today() + timedelta(days=1), status="todo")
 
     data = plan.to_dict(include_tasks=True)
@@ -23,7 +25,7 @@ def test_plan_to_dict_includes_computed_fields(app, make_user, make_plan, make_t
 def test_plan_status_priority(app, make_user, make_plan, make_task):
     user = make_user()
     completed = make_plan(user, title="完成计划")
-    make_task(user, plan=completed, status="done", completed_at=datetime.utcnow())
+    make_task(user, plan=completed, status="done", completed_at=utc_now())
     overdue = make_plan(user, title="逾期计划")
     make_task(user, plan=overdue, status="todo", due_date=date.today() - timedelta(days=1))
     empty = make_plan(user, title="空计划")
@@ -42,7 +44,7 @@ def test_get_tasks_scopes_and_filters(client, auth_headers, make_plan, make_task
     overdue = make_task(user, plan=plan, title="逾期", due_date=date.today() - timedelta(days=1), status="todo")
     upcoming = make_task(user, plan=plan, title="未来", due_date=date.today() + timedelta(days=2), status="todo")
     unscheduled = make_task(user, plan=plan, title="未安排", due_date=None, status="todo")
-    done = make_task(user, plan=plan, title="已完成", due_date=date.today(), status="done", completed_at=datetime.utcnow())
+    done = make_task(user, plan=plan, title="已完成", due_date=date.today(), status="done", completed_at=utc_now())
 
     assert [row["id"] for row in client.get("/api/tasks?scope=today", headers=headers).get_json()] == [today.id, done.id]
     assert [row["id"] for row in client.get("/api/tasks?scope=overdue", headers=headers).get_json()] == [overdue.id]

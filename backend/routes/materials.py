@@ -1,7 +1,6 @@
 from pathlib import Path
 from threading import Thread
 from uuid import uuid4
-from datetime import datetime
 
 from flask import Blueprint, current_app, jsonify, request, send_file
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -13,6 +12,7 @@ from services.ai_service import AIService
 from services.document_service import SUPPORTED_FILE_TYPES_LABEL, allowed_file, extract_text, split_text
 from services.error_service import error_response
 from services.rag_service import RAGService
+from services.time_service import utc_now
 from services.visual_service import extract_visual_assets
 
 
@@ -310,6 +310,7 @@ def material_index_status(material_id):
             "index_state": material.index_state,
             "active_index_generation": material.active_index_generation,
             "building_index_generation": material.building_index_generation,
+            "material": material.to_dict(),
             "job": job.to_dict() if job else None,
             "ask_ai_available": bool(ask_generation),
             "ask_ai_uses_generation": ask_generation,
@@ -332,7 +333,7 @@ def delete_material(material_id):
     ).all():
         job.status = "cancelled"
         job.phase = "cancelled"
-        job.finished_at = datetime.utcnow()
+        job.finished_at = utc_now()
     RAGService().delete_material_indexes(material)
     file_path = Path(material.file_path)
     if file_path.exists():
@@ -400,7 +401,7 @@ def _mark_reindex_job_stale(job, material):
     job.status = "stale"
     job.phase = "stale_after_restart"
     job.retryable = True
-    job.finished_at = datetime.utcnow()
+    job.finished_at = utc_now()
     material.building_index_generation = None
     material.index_state = "stale" if material.active_index_generation else "failed"
 
@@ -416,12 +417,12 @@ def _run_reindex_job(app, job_id):
             if not material:
                 job.status = "stale"
                 job.retryable = True
-                job.finished_at = datetime.utcnow()
+                job.finished_at = utc_now()
                 db.session.commit()
                 return
             job.status = "running"
             job.phase = "extracting"
-            job.started_at = datetime.utcnow()
+            job.started_at = utc_now()
             material.index_state = "running"
             db.session.commit()
             try:
@@ -435,6 +436,11 @@ def _run_reindex_job(app, job_id):
                 job.retryable = False
             except Exception as exc:
                 current_app.logger.warning("Reindex job failed for material %s", material.id, exc_info=True)
+                db.session.rollback()
+                job = db.session.get(ReindexJob, job_id)
+                material = Material.query.filter_by(id=job.material_id, user_id=job.user_id).first() if job else None
+                if not job or not material:
+                    return
                 material.building_index_generation = None
                 # Only downgrade index_state if it's still in a transitional state
                 if material.index_state in ("queued", "running"):
@@ -448,7 +454,7 @@ def _run_reindex_job(app, job_id):
                 job.error_code = "INDEX_FAILED"
                 job.retryable = True
             finally:
-                job.finished_at = datetime.utcnow()
+                job.finished_at = utc_now()
                 db.session.commit()
         finally:
             _ACTIVE_REINDEX_JOBS.discard(job_id)
@@ -482,7 +488,8 @@ def _process_material(material, reindex=False, generation=None, job=None):
             if reindex:
                 rag.delete_material_visual_vectors(material.user_id, material.id)
                 MaterialVisualAsset.query.filter_by(material_id=material.id).delete()
-                db.session.flush()
+                db.session.commit()
+                db.session.refresh(material)
             visual_assets = extract_visual_assets(material)
             rag.index_visual_assets(material, visual_assets, reindex=False, generation=generation or material.active_index_generation or 1)
             visual_count = MaterialVisualAsset.query.filter_by(
@@ -516,6 +523,12 @@ def _process_material(material, reindex=False, generation=None, job=None):
         db.session.commit()
     except Exception as exc:
         current_app.logger.exception("Failed to process material %s", material.id)
+        db.session.rollback()
+        material = db.session.get(Material, material.id)
+        if not material:
+            if job:
+                raise
+            return
         material.status = "failed"
         material.index_state = "failed"
         material.summary = ""

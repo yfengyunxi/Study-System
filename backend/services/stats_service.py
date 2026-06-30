@@ -1,5 +1,5 @@
 from collections import Counter
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 from sqlalchemy import func
 
@@ -7,6 +7,7 @@ from models.chat import ChatHistory, Conversation
 from models.focus import FocusSession
 from models.material import Material, MaterialFolder
 from models.plan import StudyTask
+from services.time_service import utc_now
 
 
 def dashboard_stats(user_id):
@@ -22,7 +23,7 @@ def dashboard_stats(user_id):
     recent_chat_dicts = [_conversation_recent_dict(item) for item in conversations] if conversations else [chat.to_dict() for chat in legacy_recent]
 
     base = {
-        "generated_at": datetime.utcnow().isoformat(),
+        "generated_at": utc_now().isoformat(),
         "total_materials": total_materials,
         "total_chats": total_chats,
         "total_tasks": total_tasks,

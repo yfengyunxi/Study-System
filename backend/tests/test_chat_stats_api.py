@@ -2,6 +2,8 @@ import json
 from datetime import date, timedelta
 from unittest.mock import patch
 
+from services.rag_service import RAGService
+
 
 def test_chat_general_scope_returns_empty_references(client, auth_headers):
     headers, _user = auth_headers()
@@ -44,6 +46,22 @@ def test_chat_omitted_scope_type_preserves_legacy_all_behavior(client, auth_head
 
     assert response.status_code == 200
     assert response.get_json()["answer"] == "旧行为回答"
+
+
+def test_rag_uncategorized_scope_filters_fallback_chunks(app, make_user, make_folder, make_material, make_chunk):
+    user = make_user()
+    folder = make_folder(user)
+    uncategorized = make_material(user, title="未分类资料", status="ready")
+    categorized = make_material(user, folder=folder, title="文件夹资料", status="ready")
+    make_chunk(uncategorized, content="shared keyword from uncategorized")
+    make_chunk(categorized, content="shared keyword from categorized")
+
+    service = RAGService()
+
+    with patch.object(service.ai, "embed", return_value=[0.1]), patch.object(service.vector_store, "query", side_effect=RuntimeError("force fallback")):
+        references = service.search(user.id, "shared", uncategorized=True)
+
+    assert [item["material_id"] for item in references] == [uncategorized.id]
 
 
 def test_chat_references_are_normalized_in_history(app, make_user, make_chat):

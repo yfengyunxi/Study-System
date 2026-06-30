@@ -138,7 +138,9 @@ function startDetailReindexPolling() {
     }
     try {
       const status = await materialApi.indexStatus(route.params.id)
-      if (material.value) {
+      if (status.material) {
+        material.value = status.material
+      } else if (material.value) {
         material.value.index_state = status.index_state
         material.value.status = status.status
         material.value.active_index_generation = status.active_index_generation
@@ -146,12 +148,13 @@ function startDetailReindexPolling() {
       if (['succeeded', 'failed', 'cancelled', 'stale'].includes(status.job?.status)) {
         stopDetailReindexPolling()
         if (status.job?.status === 'succeeded') {
+          await load()
           reindexStatus.value = { type: '', message: '索引已重建，可以继续基于该资料提问。' }
           ElMessage.success('索引已重建')
         } else {
           reindexStatus.value = { type: 'danger', message: `索引重建失败：${status.job?.last_error || '未知错误'}` }
+          await load()
         }
-        await load()
       }
     } catch {
       stopDetailReindexPolling()

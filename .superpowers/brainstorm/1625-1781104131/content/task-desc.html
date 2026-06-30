@@ -1,0 +1,107 @@
+<h2>任务说明的三种显示方式</h2>
+<p class="subtitle">展开计划后，任务说明如何处理？</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">方式 A：直接跟在标题下方</div>
+    <div class="mockup-body" style="font-size:11px;line-height:1.5;padding:12px">
+      <div style="font-weight:700;font-size:11px;margin-bottom:6px;color:#c47b09">待完成 (4)</div>
+      <div style="display:grid;gap:8px">
+        <div style="padding:10px 12px;background:#fff8e6;border:1px solid #eadfc8;border-radius:8px">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <span style="color:#c47b09;margin-top:1px">☐</span>
+            <div style="flex:1;min-width:0">
+              <strong style="font-size:12px">多表连接与嵌套查询</strong>
+              <span style="color:#d64545;float:right;font-size:10px">今天截止</span>
+              <p style="color:#6b7280;font-size:10px;margin:4px 0 0;line-height:1.4">INNER/LEFT/RIGHT JOIN、EXISTS、子查询的练习。重点理解相关子查询和非相关子查询的区别。</p>
+            </div>
+          </div>
+        </div>
+        <div style="padding:10px 12px;background:#fff;border:1px solid #eadfc8;border-radius:8px">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <span style="color:#6b7280;margin-top:1px">☐</span>
+            <div style="flex:1">
+              <strong style="font-size:12px">索引与查询优化笔记</strong>
+              <span style="color:#6b7280;float:right;font-size:10px">6/13</span>
+              <p style="color:#6b7280;font-size:10px;margin:4px 0 0;line-height:1.4">B+树、哈希索引、EXPLAIN 分析执行计划</p>
+            </div>
+          </div>
+        </div>
+        <div style="padding:10px 12px;background:#fff;border:1px solid #eadfc8;border-radius:8px">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <span style="color:#6b7280;margin-top:1px">☐</span>
+            <div style="flex:1">
+              <strong style="font-size:12px">期末复习：真题+错题回顾</strong>
+              <span style="color:#6b7280;float:right;font-size:10px">6/28</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:8px;padding:6px 10px;background:#f0faf5;border-radius:6px;font-size:10px;color:#18a86b">
+        ✓ 简洁自然，有说明就显示，没有就不显示
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">方式 B：点击任务行展开说明</div>
+    <div class="mockup-body" style="font-size:11px;line-height:1.5;padding:12px">
+      <div style="font-weight:700;font-size:11px;margin-bottom:6px;color:#c47b09">待完成 (4)</div>
+      <div style="display:grid;gap:6px">
+        <!-- 已展开的任务 -->
+        <div style="background:#fff;border:2px solid #2f80ed;border-radius:8px;overflow:hidden">
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;background:#dcebff">
+            <span style="color:#c47b09">☐</span>
+            <strong style="font-size:12px;flex:1">多表连接与嵌套查询</strong>
+            <span style="font-size:10px;color:#2f80ed">▾</span>
+          </div>
+          <div style="padding:8px 12px;border-top:1px solid #eadfc8;background:#fff">
+            <p style="color:#6b7280;font-size:10px;margin:0;line-height:1.5">INNER/LEFT/RIGHT JOIN、EXISTS、子查询的练习。重点理解相关子查询和非相关子查询的区别。</p>
+            <div style="margin-top:6px;display:flex;gap:8px">
+              <span style="color:#d64545;font-size:9px">📅 今天截止</span>
+              <span style="color:#6b7280;font-size:9px">📁 数据库系统概论</span>
+            </div>
+          </div>
+        </div>
+        <!-- 未展开的 -->
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;border:1px solid #eadfc8;border-radius:8px;cursor:pointer">
+          <span style="color:#6b7280">☐</span>
+          <strong style="font-size:12px;flex:1">索引与查询优化笔记</strong>
+          <span style="font-size:10px;color:#6b7280">▸</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;border:1px solid #eadfc8;border-radius:8px;cursor:pointer">
+          <span style="color:#6b7280">☐</span>
+          <strong style="font-size:12px;flex:1">事务ACID与隔离级别</strong>
+          <span style="font-size:10px;color:#6b7280">▸</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;border:1px solid #eadfc8;border-radius:8px;cursor:pointer">
+          <span style="color:#6b7280">☐</span>
+          <strong style="font-size:12px;flex:1">期末复习：真题+错题</strong>
+        </div>
+      </div>
+      <div style="margin-top:8px;padding:6px 10px;background:#fff8e6;border-radius:6px;font-size:10px;color:#c47b09">
+        ⚠ 每次看说明要多点一次，不直接
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:20px">
+  <h3>推荐方式 A</h3>
+  <p class="subtitle">说明文字短（通常就一两句话），直接展示最自然。和 Notion / Things 3 / TickTick 等工具的做法一致。有说明显示，没有就不占空间。</p>
+</div>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>选 A</h3>
+      <p>说明文字直接跟在任务标题下面</p>
+    </div>
+  </div>
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>选 B</h3>
+      <p>点击任务行才展开说明</p>
+    </div>
+  </div>
+</div>

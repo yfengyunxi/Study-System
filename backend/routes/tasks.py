@@ -7,6 +7,7 @@ from sqlalchemy import case
 
 from extensions import db
 from models.plan import StudyPlan, StudyTask
+from services.time_service import utc_now
 
 
 tasks_bp = Blueprint("tasks", __name__)
@@ -134,7 +135,7 @@ def update_task(task_id):
         return jsonify({"message": str(exc)}), 400
     if data.get("status") in {"todo", "done"}:
         task.status = data["status"]
-        task.completed_at = datetime.utcnow() if task.status == "done" else None
+        task.completed_at = utc_now() if task.status == "done" else None
     db.session.commit()
     return jsonify(task.to_dict())
 
@@ -159,7 +160,7 @@ def complete_task(task_id):
     if not task:
         return jsonify({"message": "任务不存在"}), 404
     task.status = "done"
-    task.completed_at = datetime.utcnow()
+    task.completed_at = utc_now()
     db.session.commit()
     return jsonify(task.to_dict())
 

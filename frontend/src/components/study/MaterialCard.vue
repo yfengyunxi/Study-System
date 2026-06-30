@@ -9,6 +9,7 @@
           重建中
         </span>
       </div>
+      <el-icon v-if="sortable" class="drag-handle" title="拖拽排序"><Rank /></el-icon>
     </div>
     <h3>{{ material.title }}</h3>
     <p class="muted">{{ material.folder_name || '未分类' }}</p>
@@ -41,11 +42,14 @@
 </template>
 
 <script setup>
-import { Refresh } from '@element-plus/icons-vue'
+import { Rank, Refresh } from '@element-plus/icons-vue'
 import { computed } from 'vue'
 import StatusBadge from './StatusBadge.vue'
 
-const props = defineProps({ material: { type: Object, required: true } })
+const props = defineProps({
+  material: { type: Object, required: true },
+  sortable: { type: Boolean, default: false }
+})
 defineEmits(['view', 'ask', 'move', 'reindex', 'remove'])
 
 const visibleKeywords = computed(() => (props.material.keywords || []).slice(0, 4))

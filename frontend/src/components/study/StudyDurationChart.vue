@@ -6,8 +6,9 @@
 </template>
 
 <script setup>
-import * as echarts from 'echarts'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+
+import { echarts } from '../../utils/chart'
 
 const props = defineProps({
   data: { type: Array, default: () => [] }

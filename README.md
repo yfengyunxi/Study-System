@@ -246,7 +246,7 @@ DELETE /api/material-folders/<id>  删除
 GET    /api/materials                        列表（支持 folder_id 筛选）
 POST   /api/materials/upload                 上传
 GET    /api/materials/<id>                   详情
-PUT    /api/materials/<id>/move              移动到文件夹
+PATCH  /api/materials/<id>/folder            移动到文件夹
 DELETE /api/materials/<id>                   删除
 POST   /api/materials/<id>/reindex           重建索引
 GET    /api/materials/<id>/index-status      索引状态
@@ -271,7 +271,7 @@ GET    /api/chat/history                          历史列表
 GET    /api/chat/history/<id>                     历史详情
 
 # AI 状态
-GET    /api/chat/ai-status                        检查 AI 配置
+GET    /api/chat/status                           检查 AI 配置
 ```
 
 ### 学习计划
@@ -299,7 +299,7 @@ POST   /api/tasks/<id>/undo    撤销完成
 ### 专注记录
 
 ```text
-POST   /api/focus/sessions     创建专注记录
+POST   /api/focus-sessions     创建专注记录
 ```
 
 ### 统计
@@ -307,7 +307,7 @@ POST   /api/focus/sessions     创建专注记录
 ```text
 GET    /api/stats/dashboard     仪表盘综合统计
 GET    /api/stats/task-trend    任务完成趋势
-GET    /api/stats/focus-trend   专注时长趋势
+GET    /api/stats/focus-duration-trend 专注时长趋势
 GET    /api/stats/material-types 资料类型分布
 GET    /api/stats/folders       文件夹资料统计
 ```

@@ -1,0 +1,114 @@
+<h2>底部"展开计划详情"区域 — 交互示意</h2>
+<p class="subtitle">点击计划名称展开，不占顶部空间，想看哪个看哪个</p>
+
+<!-- 场景1：收起状态 -->
+<div class="mockup" style="margin-bottom:24px">
+  <div class="mockup-header">默认收起 — 只显示一行摘要条</div>
+  <div class="mockup-body" style="font-size:12px;line-height:1.5;padding:12px">
+    <div style="font-weight:700;font-size:13px;margin-bottom:8px;color:#6b7280">📂 展开查看计划详情</div>
+    <div style="display:grid;gap:6px">
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #eadfc8;border-radius:10px;cursor:pointer">
+        <span style="font-size:16px">▸</span>
+        <span style="flex:1;font-weight:700">数据库系统概论</span>
+        <div style="width:180px;height:8px;background:#eadfc8;border-radius:4px"><div style="width:43%;height:100%;background:#2f80ed;border-radius:4px"></div></div>
+        <span style="color:#6b7280;font-size:11px">3/7 · 43%</span>
+        <span style="color:#18a86b;font-size:11px;font-weight:700">进行中</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #eadfc8;border-radius:10px;cursor:pointer">
+        <span style="font-size:16px">▸</span>
+        <span style="flex:1;font-weight:700">Python 数据分析实战</span>
+        <div style="width:180px;height:8px;background:#eadfc8;border-radius:4px"><div style="width:20%;height:100%;background:#2f80ed;border-radius:4px"></div></div>
+        <span style="color:#6b7280;font-size:11px">1/5 · 20%</span>
+        <span style="color:#18a86b;font-size:11px;font-weight:700">进行中</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #eadfc8;border-radius:10px;cursor:pointer">
+        <span style="font-size:16px">▸</span>
+        <span style="flex:1;font-weight:700">计算机网络（自顶向下）</span>
+        <div style="width:180px;height:8px;background:#eadfc8;border-radius:4px"><div style="width:50%;height:100%;background:#ff7a66;border-radius:4px"></div></div>
+        <span style="color:#c47b09;font-size:11px">2/4 · 2个逾期 ⚠</span>
+        <span style="color:#c47b09;font-size:11px;font-weight:700">已逾期</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #eadfc8;border-radius:10px;cursor:pointer">
+        <span style="font-size:16px">▸</span>
+        <span style="flex:1;font-weight:700">操作系统概念</span>
+        <span style="color:#6b7280;font-size:11px">5天后开始 · 3个任务</span>
+        <span style="color:#6b7280;font-size:11px">未开始</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #eadfc8;border-radius:10px;cursor:pointer">
+        <span style="font-size:16px">▸</span>
+        <span style="flex:1;font-weight:700">线性代数考前冲刺</span>
+        <span style="color:#18a86b;font-size:11px">4/4 · 全部完成</span>
+        <span style="color:#18a86b;font-size:11px;font-weight:700">已完成 ✓</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 场景2：展开一个 -->
+<div class="mockup" style="margin-bottom:24px">
+  <div class="mockup-header">点击"数据库系统概论"展开后 — 显示该计划所有任务 + 操作按钮</div>
+  <div class="mockup-body" style="font-size:12px;line-height:1.5;padding:12px">
+    <div style="font-weight:700;font-size:13px;margin-bottom:8px;color:#6b7280">📂 展开查看计划详情</div>
+    <div style="display:grid;gap:6px">
+      <!-- 展开的计划 -->
+      <div style="background:#dcebff;border:2px solid #2f80ed;border-radius:10px;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#dcebff;cursor:pointer">
+          <span style="font-size:16px">▾</span>
+          <span style="flex:1;font-weight:700;color:#1d5bbf">数据库系统概论</span>
+          <span style="color:#1d5bbf;font-size:11px">3/7 · 43%</span>
+        </div>
+        <div style="padding:12px 16px;background:#fff">
+          <p style="color:#6b7280;font-size:11px;margin:0 0 8px">掌握关系模型、SQL 查询优化、事务与并发控制。06/01 - 06/30</p>
+
+          <!-- 任务列表：分组显示 -->
+          <div style="margin-bottom:10px">
+            <div style="font-weight:700;font-size:11px;margin-bottom:4px;color:#18a86b">已完成 (3)</div>
+            <div style="display:grid;gap:3px">
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f0faf5;border-radius:6px;font-size:11px"><span style="color:#18a86b">✓</span> 阅读第1章 绪论 <span style="color:#6b7280;margin-left:auto">6/2 完成</span></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f0faf5;border-radius:6px;font-size:11px"><span style="color:#18a86b">✓</span> 完成关系代数练习 <span style="color:#6b7280;margin-left:auto">6/5 完成</span></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f0faf5;border-radius:6px;font-size:11px"><span style="color:#18a86b">✓</span> SQL单表查询练习 <span style="color:#6b7280;margin-left:auto">6/8 完成</span></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:10px">
+            <div style="font-weight:700;font-size:11px;margin-bottom:4px;color:#c47b09">待完成 (4)</div>
+            <div style="display:grid;gap:3px">
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff8e6;border-radius:6px;font-size:11px"><span style="color:#c47b09">☐</span> <strong>多表连接与嵌套查询</strong> <span style="color:#d64545;margin-left:auto">今天截止</span></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff;border:1px solid #eadfc8;border-radius:6px;font-size:11px"><span style="color:#6b7280">☐</span> 索引与查询优化笔记 <span style="color:#6b7280;margin-left:auto">6/13</span></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff;border:1px solid #eadfc8;border-radius:6px;font-size:11px"><span style="color:#6b7280">☐</span> 事务ACID与隔离级别 <span style="color:#6b7280;margin-left:auto">6/17</span></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff;border:1px solid #eadfc8;border-radius:6px;font-size:11px"><span style="color:#6b7280">☐</span> 期末复习：真题+错题 <span style="color:#6b7280;margin-left:auto">6/28</span></div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;padding-top:8px;border-top:1px solid #eadfc8">
+            <button class="mock-button" style="font-size:11px">+ 添加任务</button>
+            <button style="padding:6px 14px;border-radius:8px;border:1px solid #d64545;background:#fff;color:#d64545;font-size:11px;cursor:pointer">删除计划</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 其他收起的计划 -->
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #eadfc8;border-radius:10px;cursor:pointer">
+        <span style="font-size:16px">▸</span>
+        <span style="flex:1;font-weight:700">Python 数据分析实战</span>
+        <div style="width:180px;height:8px;background:#eadfc8;border-radius:4px"><div style="width:20%;height:100%;background:#2f80ed;border-radius:4px"></div></div>
+        <span style="color:#6b7280;font-size:11px">1/5 · 20%</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #eadfc8;border-radius:10px;cursor:pointer">
+        <span style="font-size:16px">▸</span>
+        <span style="flex:1;font-weight:700">计算机网络</span>
+        <span style="color:#c47b09;font-size:11px">⚠ 2个逾期</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #eadfc8;border-radius:10px;cursor:pointer;color:#6b7280">
+        <span style="font-size:16px">▸</span>
+        <span style="flex:1;font-weight:700">操作系统概念</span>
+        <span style="font-size:11px">未开始</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #eadfc8;border-radius:10px;cursor:pointer;color:#6b7280">
+        <span style="font-size:16px">▸</span>
+        <span style="flex:1;font-weight:700">线性代数考前冲刺</span>
+        <span style="color:#18a86b;font-size:11px">✓ 已完成</span>
+      </div>
+    </div>
+  </div>
+</div>

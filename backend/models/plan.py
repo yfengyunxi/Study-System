@@ -1,6 +1,7 @@
-from datetime import date, datetime
+from datetime import date
 
 from extensions import db
+from services.time_service import utc_now
 
 
 class StudyPlan(db.Model):
@@ -12,7 +13,7 @@ class StudyPlan(db.Model):
     description = db.Column(db.Text, default="")
     start_date = db.Column(db.Date, nullable=True)
     end_date = db.Column(db.Date, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
 
     tasks = db.relationship(
         "StudyTask",
@@ -78,7 +79,7 @@ class StudyTask(db.Model):
     due_date = db.Column(db.Date, nullable=True, index=True)
     status = db.Column(db.String(20), default="todo", nullable=False)
     completed_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
 
     def to_dict(self):
         today = date.today()

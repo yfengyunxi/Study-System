@@ -2,6 +2,7 @@ import hashlib
 import base64
 import mimetypes
 import re
+import time
 
 import requests
 from requests import HTTPError, RequestException, Timeout
@@ -33,6 +34,8 @@ class AIService:
         self.multimodal_embedding_api_key = current_app.config["MULTIMODAL_EMBEDDING_API_KEY"]
         self.multimodal_embedding_model = current_app.config["MULTIMODAL_EMBEDDING_MODEL"]
         self.multimodal_embedding_dimension = current_app.config["MULTIMODAL_EMBEDDING_DIMENSION"]
+        self.request_max_retries = max(int(current_app.config.get("AI_REQUEST_MAX_RETRIES", 3)), 1)
+        self.request_retry_backoff_seconds = max(float(current_app.config.get("AI_REQUEST_RETRY_BACKOFF_SECONDS", 1.5)), 0)
 
     @property
     def enabled(self):
@@ -120,16 +123,35 @@ class AIService:
         return self._extract_responses_text(data)
 
     def _post_json(self, url, headers, payload, timeout):
-        try:
-            response = requests.post(url, headers=headers, json=payload, timeout=timeout)
-            self._raise_for_status(response)
-            return response
-        except Timeout as exc:
-            raise AIServiceTimeoutError("AI request timed out") from exc
-        except UpstreamAIError:
-            raise
-        except RequestException as exc:
-            raise UpstreamAIError(str(exc)) from exc
+        last_exc = None
+        for attempt in range(1, self.request_max_retries + 1):
+            try:
+                response = requests.post(url, headers=headers, json=payload, timeout=timeout)
+                self._raise_for_status(response)
+                return response
+            except Timeout as exc:
+                last_exc = exc
+                if attempt >= self.request_max_retries:
+                    raise AIServiceTimeoutError("AI request timed out") from exc
+            except UpstreamAIError as exc:
+                last_exc = exc
+                if not self._is_retryable_upstream_error(exc) or attempt >= self.request_max_retries:
+                    raise
+            except RequestException as exc:
+                last_exc = exc
+                if attempt >= self.request_max_retries:
+                    raise UpstreamAIError(str(exc)) from exc
+            self._sleep_before_retry(attempt)
+        raise UpstreamAIError(str(last_exc))
+
+    def _sleep_before_retry(self, attempt):
+        if self.request_retry_backoff_seconds <= 0:
+            return
+        time.sleep(self.request_retry_backoff_seconds * attempt)
+
+    def _is_retryable_upstream_error(self, exc):
+        status_code = getattr(exc, "status_code", None)
+        return status_code == 429 or (status_code is not None and status_code >= 500)
 
     def _extract_responses_text(self, data):
         if data.get("output_text"):
@@ -218,7 +240,9 @@ class AIService:
             response.raise_for_status()
         except HTTPError as exc:
             detail = response.text[:800].replace("\n", " ")
-            raise UpstreamAIError(f"{response.status_code} {response.reason}: {detail}") from exc
+            error = UpstreamAIError(f"{response.status_code} {response.reason}: {detail}")
+            error.status_code = response.status_code
+            raise error from exc
 
     def _fallback_summary(self, text):
         cleaned = re.sub(r"\s+", " ", text).strip()

@@ -84,6 +84,9 @@ def test_reindex_status_reports_previous_generation_available(client, auth_heade
     data = response.get_json()
     assert data["ask_ai_available"] is True
     assert data["ask_ai_uses_generation"] == 3
+    assert data["material"]["id"] == material.id
+    assert data["material"]["index_state"] == "stale"
+    assert data["material"]["active_index_generation"] == 3
 
 
 def test_reindex_cross_user_material_returns_404(client, auth_headers, make_user, make_material):
@@ -165,3 +168,5 @@ def test_status_marks_interrupted_running_job_stale(client, auth_headers, make_m
     assert data["job"]["retryable"] is True
     assert data["ask_ai_available"] is True
     assert data["ask_ai_uses_generation"] == 2
+    assert data["material"]["id"] == material.id
+    assert data["material"]["index_state"] == "stale"

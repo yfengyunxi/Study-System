@@ -23,9 +23,11 @@ class Config:
 
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", str(BASE_DIR / "uploads"))
     CHROMA_DIR = os.getenv("CHROMA_DIR", str(BASE_DIR / "chroma_store"))
-    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", str(30 * 1024 * 1024)))
+    MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", str(100 * 1024 * 1024)))
     CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 
+    AI_REQUEST_MAX_RETRIES = int(os.getenv("AI_REQUEST_MAX_RETRIES", "3"))
+    AI_REQUEST_RETRY_BACKOFF_SECONDS = float(os.getenv("AI_REQUEST_RETRY_BACKOFF_SECONDS", "1.5"))
     AI_BASE_URL = os.getenv("AI_BASE_URL", "").rstrip("/")
     AI_API_KEY = os.getenv("AI_API_KEY", "")
     CHAT_BASE_URL = os.getenv("CHAT_BASE_URL", AI_BASE_URL).rstrip("/")

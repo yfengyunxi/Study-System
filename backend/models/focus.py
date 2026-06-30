@@ -1,6 +1,7 @@
-from datetime import date, datetime
+from datetime import date
 
 from extensions import db
+from services.time_service import utc_now
 
 
 class FocusSession(db.Model):
@@ -17,7 +18,7 @@ class FocusSession(db.Model):
     timezone_offset_minutes = db.Column(db.Integer, nullable=False)
     source = db.Column(db.String(50), default="pomodoro", nullable=False)
     status = db.Column(db.String(20), default="completed", nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_at = db.Column(db.DateTime, default=utc_now, nullable=False)
 
     __table_args__ = (
         db.UniqueConstraint("user_id", "client_session_id", name="uq_focus_session_user_client"),
